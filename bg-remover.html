@@ -296,7 +296,10 @@
               var json = await res.json();
               detail = json && (json.detail || json.message) ? (" " + (json.detail || json.message)) : "";
             } catch (_err) {}
-            throw new Error("Background removal failed." + detail);
+            setBackendStatus(false, "Backend: reachable — removal failed (see below)");
+            showError("Background removal failed." + detail);
+            setBusy(false);
+            return;
           }
           setBackendStatus(true, "Backend: connected");
           var blob = await res.blob();

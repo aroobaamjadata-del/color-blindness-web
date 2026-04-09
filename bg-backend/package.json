@@ -3,7 +3,7 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "build": "node -e \"process.exit(0)\"",
+    "build": "node scripts/install-python-deps.cjs",
     "start": "node index.js"
   },
   "dependencies": {

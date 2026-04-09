@@ -1,0 +1,4 @@
+# Used by remove_bg.py (spawned from Node). Installed during Render build — see package.json "build".
+rembg>=2.0.50
+Pillow>=10.0.0
+requests>=2.28.0

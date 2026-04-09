@@ -8,7 +8,13 @@ config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(
+    cors({
+        origin: true,
+        methods: ["GET", "POST", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+    })
+);
 
 if (process.env.MONGOURL) {
     mongoose.connect(process.env.MONGOURL, { dbName: "bgremover" })

@@ -26,4 +26,7 @@ app.use(express.static(dist));
 
 app.listen(port, "0.0.0.0", () => {
   console.log(`Serving dist/ on http://0.0.0.0:${port}`);
+  if (!(process.env.VISIONX_BG_API || "").trim()) {
+    console.warn("[visionx] VISIONX_BG_API is unset — BG Remover will call /health on this host unless ?api= is used.");
+  }
 });

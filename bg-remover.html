@@ -152,6 +152,12 @@
   <script>
     (function () {
       "use strict";
+      try {
+        var q = new URLSearchParams(window.location.search);
+        var aq = q.get("api") || q.get("visionx_bg_api");
+        if (aq) window.VISIONX_BG_API = String(aq).replace(/\/$/, "");
+      } catch (_q) {}
+
       var fileInput = document.getElementById("bgFileInput");
       var browseBtn = document.getElementById("bgBrowseBtn");
       var dropZone = document.getElementById("bgDropZone");
@@ -304,11 +310,32 @@
 
       async function pingBackend() {
         var base = getApiBase();
+        var isLocal =
+          window.location.protocol === "file:" ||
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1";
+        var timeoutMs = isLocal ? 12000 : 120000;
+        var sameOriginFallback = base === window.location.origin;
+        var configHint = sameOriginFallback
+          ? " Set env VISIONX_BG_API on your Render frontend service to your API URL, or open this page with ?api=https://YOUR-API.onrender.com"
+          : "";
+
         try {
-          var res = await fetch(base + "/health", { method: "GET" });
-          setBackendStatus(res.ok, res.ok ? "Backend: connected" : "Backend: not reachable");
-        } catch (_e) {
-          setBackendStatus(false, "Backend: not reachable");
+          var ctrl = new AbortController();
+          var tid = setTimeout(function () { ctrl.abort(); }, timeoutMs);
+          var res = await fetch(base + "/health", { method: "GET", signal: ctrl.signal });
+          clearTimeout(tid);
+          if (res.ok) {
+            setBackendStatus(true, "Backend: connected");
+          } else {
+            setBackendStatus(false, "Backend: not reachable (health returned " + res.status + ")." + configHint);
+          }
+        } catch (err) {
+          var aborted = err && err.name === "AbortError";
+          var msg = aborted
+            ? "Backend: timed out — free tier can take 1–2 min to wake; click Refresh or try again."
+            : "Backend: not reachable — check API URL, HTTPS, and that /health works in the browser.";
+          setBackendStatus(false, msg + configHint);
         }
       }
 

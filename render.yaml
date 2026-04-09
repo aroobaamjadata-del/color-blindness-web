@@ -1,0 +1,30 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Optional: connect this repo in Render → New → Blueprint to provision both services.
+# If you already have manual services, instead set VISIONX_BG_API on the frontend to your API URL.
+#
+# The API uses remove_bg.py (Python + rembg). Native Node on Render may lack those; if /image/remove
+# fails in logs, add a Dockerfile under bg-backend or a build step that installs Python + rembg.
+
+services:
+  - type: web
+    name: visionx-bg-api
+    runtime: node
+    rootDir: bg-backend
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+
+  - type: web
+    name: visionx-frontend
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: VISIONX_BG_API
+        fromService:
+          name: visionx-bg-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL

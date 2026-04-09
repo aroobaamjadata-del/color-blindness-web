@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build": "node scripts/build-dist.cjs",
+    "start": "node scripts/serve-static.cjs",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
   },
   "dependencies": {

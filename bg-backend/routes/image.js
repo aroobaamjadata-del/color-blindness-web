@@ -19,10 +19,14 @@ router.post("/remove", upload.single("image"), (req, res) => {
 
     const py = spawn(python, [script, infile, outfile]);
     let stderr = "";
+    let stdout = "";
     let responded = false;
 
     py.stderr.on("data", (chunk) => {
         stderr += chunk.toString();
+    });
+    py.stdout.on("data", (chunk) => {
+        stdout += chunk.toString();
     });
 
     py.on("error", (err) => {
@@ -36,8 +40,12 @@ router.post("/remove", upload.single("image"), (req, res) => {
         if (responded) return;
         if (code !== 0) {
             responded = true;
-            console.error("remove_bg.py failed:", stderr);
-            return res.status(500).json({ message: "Background removal failed", detail: stderr });
+            const errText = [stderr, stdout].map((s) => (s || "").trim()).filter(Boolean).join("\n");
+            const detail =
+                errText ||
+                (code === null ? "Python process was killed (often out of memory on small instances)." : `Python exited with code ${code}.`);
+            console.error("remove_bg.py failed:", detail);
+            return res.status(500).json({ message: "Background removal failed", detail });
         }
 
         res.type("png");
@@ -46,7 +54,7 @@ router.post("/remove", upload.single("image"), (req, res) => {
             if (err) {
                 responded = true;
                 console.error("sendFile error:", err);
-                return res.status(500).end();
+                return res.status(500).json({ message: "Background removal failed", detail: err.message });
             }
         });
     });

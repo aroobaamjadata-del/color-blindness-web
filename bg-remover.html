@@ -291,13 +291,19 @@
             body: form
           });
           if (!res.ok) {
-            var detail = "";
+            var errLine = "";
             try {
               var json = await res.json();
-              detail = json && (json.detail || json.message) ? (" " + (json.detail || json.message)) : "";
-            } catch (_err) {}
+              if (json) {
+                var d = json.detail != null ? String(json.detail).trim() : "";
+                var m = json.message != null ? String(json.message).trim() : "";
+                if (d) errLine = d;
+                else if (m) errLine = m;
+              }
+            } catch (_parse) {}
+            if (!errLine) errLine = "Request failed (HTTP " + res.status + ").";
             setBackendStatus(false, "Backend: reachable — removal failed (see below)");
-            showError("Background removal failed." + detail);
+            showError(errLine);
             setBusy(false);
             return;
           }

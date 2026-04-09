@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en" data-visionx-contact="true">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contact — VisionX | ATA IT Solutions</title>
+  <meta name="description" content="Get in touch with VisionX and ATA IT Solutions for color accessibility, WCAG compliance, and the Photoshop plugin.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="vx-body">
+
+  <header class="vx-nav-wrap">
+    <div class="vx-nav-row">
+      <a class="vx-logo" href="index.html">VisionX</a>
+      <button type="button" class="vx-nav-toggle" aria-controls="vxPrimaryNav" aria-expanded="false" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="vx-nav" id="vxPrimaryNav" aria-label="Primary">
+        <ul class="vx-nav-list">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="tool.html">Web Tool</a></li>
+          <li><a href="bg-remover.html">BG Remover</a></li>
+          <li><a href="plugin.html">Plugin</a></li>
+          <li><a href="contact.html" aria-current="page">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="vx-cf-main">
+    <!-- SECTION 1 — HERO -->
+    <section class="vx-cf-hero" aria-labelledby="vx-cf-hero-title">
+      <p class="vx-cf-badge vx-cf-anim-hero">Get in Touch</p>
+      <h1 id="vx-cf-hero-title" class="vx-cf-hero-title vx-cf-anim-hero">
+        <span class="vx-cf-gradient">Let's build something</span>
+        <span class="vx-cf-gradient">accessible together.</span>
+      </h1>
+      <p class="vx-cf-hero-sub vx-cf-anim-hero">Have a project, question, or want to collaborate? We respond within 24 hours.</p>
+    </section>
+
+    <div class="vx-cf-cols">
+      <!-- SECTION 2 — LEFT -->
+      <aside class="vx-cf-col vx-cf-col--info anim-fadein" aria-label="Contact information">
+        <div class="vx-cf-glass vx-cf-info-card">
+          <h2 class="vx-cf-sr-heading">Contact details</h2>
+          <div class="vx-cf-detail">
+            <span class="vx-cf-detail-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+            </span>
+            <div>
+              <span class="vx-cf-detail-label">Email</span>
+              <a class="vx-cf-detail-value" href="mailto:hello@ata-itsolutions.com">hello@ata-itsolutions.com</a>
+            </div>
+          </div>
+          <div class="vx-cf-detail">
+            <span class="vx-cf-detail-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+            </span>
+            <div>
+              <span class="vx-cf-detail-label">Location</span>
+              <span class="vx-cf-detail-value">Remote — Worldwide</span>
+            </div>
+          </div>
+          <div class="vx-cf-detail">
+            <span class="vx-cf-detail-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </span>
+            <div>
+              <span class="vx-cf-detail-label">Response Time</span>
+              <span class="vx-cf-detail-value">Within 24 hours</span>
+            </div>
+          </div>
+
+          <p class="vx-cf-block-label">We can help with</p>
+          <div class="vx-cf-tags">
+            <span class="vx-cf-tag">Color Accessibility</span>
+            <span class="vx-cf-tag">WCAG Compliance</span>
+            <span class="vx-cf-tag">Photoshop Plugin</span>
+            <span class="vx-cf-tag">Design Consulting</span>
+            <span class="vx-cf-tag">Accessibility Audit</span>
+            <span class="vx-cf-tag">Custom Integration</span>
+          </div>
+
+          <p class="vx-cf-block-label">Explore VisionX</p>
+          <div class="vx-cf-quicklinks">
+            <a class="vx-cf-quicklink" href="tool.html">Try Web Tool →</a>
+            <a class="vx-cf-quicklink" href="assets/plugin/VisionX-Photoshop-Plugin.zip" download="VisionX-Photoshop-Plugin.zip">Download PS Plugin (.zip) →</a>
+          </div>
+        </div>
+      </aside>
+
+      <!-- SECTION 3 — FORM -->
+      <section class="vx-cf-col vx-cf-col--form anim-fadeup" aria-labelledby="vx-cf-form-title">
+        <div class="vx-cf-glass vx-cf-form-card">
+          <h2 id="vx-cf-form-title" class="vx-cf-form-heading">Send a message</h2>
+          <p class="vx-cf-form-lead">Fill out the form below and we’ll reply within 24 hours.</p>
+
+          <form
+            id="contactForm"
+            name="contact"
+            method="POST"
+            action="contact.html?success=true"
+            data-netlify="true"
+            netlify
+            netlify-honeypot="bot-field"
+            class="vx-cf-form"
+            novalidate
+          >
+            <input type="hidden" name="form-name" value="contact">
+
+            <p class="vx-cf-honeypot" aria-hidden="true">
+              <label>Don’t fill this out if you’re human: <input name="bot-field" type="text" tabindex="-1" autocomplete="off"></label>
+            </p>
+
+            <div id="formFields" class="vx-cf-form-fields">
+              <div class="vx-cf-field vx-cf-field--stagger" style="--vx-cf-stagger: 0ms">
+                <label class="vx-cf-label" for="fieldName">Full Name</label>
+                <input class="vx-cf-input" type="text" id="fieldName" name="name" placeholder="Your full name" required autocomplete="name">
+                <p class="vx-cf-error" id="errName" role="alert" hidden>Please enter your name</p>
+              </div>
+
+              <div class="vx-cf-field vx-cf-field--stagger" style="--vx-cf-stagger: 100ms">
+                <label class="vx-cf-label" for="fieldEmail">Email Address</label>
+                <input class="vx-cf-input" type="email" id="fieldEmail" name="email" placeholder="you@example.com" required autocomplete="email">
+                <p class="vx-cf-error" id="errEmail" role="alert" hidden>Please enter a valid email</p>
+              </div>
+
+              <div class="vx-cf-field vx-cf-field--stagger" style="--vx-cf-stagger: 200ms">
+                <label class="vx-cf-label" for="fieldSubject">Subject</label>
+                <select class="vx-cf-input vx-cf-select" id="fieldSubject" name="subject" required>
+                  <option value="" disabled selected>— Select a subject —</option>
+                  <option value="General Inquiry">General Inquiry</option>
+                  <option value="Plugin Support">Plugin Support</option>
+                  <option value="Accessibility Consultation">Accessibility Consultation</option>
+                  <option value="Bug Report">Bug Report</option>
+                  <option value="Partnership / Collaboration">Partnership / Collaboration</option>
+                  <option value="Other">Other</option>
+                </select>
+                <p class="vx-cf-error" id="errSubject" role="alert" hidden>Please select a subject</p>
+              </div>
+
+              <div class="vx-cf-field vx-cf-field--stagger vx-cf-field--textarea" style="--vx-cf-stagger: 300ms">
+                <label class="vx-cf-label" for="fieldMessage">Message</label>
+                <div class="vx-cf-textarea-wrap">
+                  <textarea class="vx-cf-input vx-cf-textarea" id="fieldMessage" name="message" rows="6" placeholder="Tell us about your project or question..." required></textarea>
+                  <span class="vx-cf-counter" id="msgCounter" aria-live="polite">0 / 20 minimum</span>
+                </div>
+                <p class="vx-cf-error" id="errMessage" role="alert" hidden>Message must be at least 20 characters</p>
+              </div>
+            </div>
+
+            <div id="formLoading" class="vx-cf-loading" hidden>
+              <span class="vx-cf-loading-spin" aria-hidden="true"></span>
+              <p class="vx-cf-loading-text">Sending your message…</p>
+            </div>
+
+            <p class="vx-cf-error vx-cf-error--global" id="formSubmitError" role="alert" hidden>
+              Something went wrong. Please try again or email us directly at <a href="mailto:hello@ata-itsolutions.com">hello@ata-itsolutions.com</a>
+            </p>
+
+            <button type="submit" class="vx-cf-submit" id="submitBtn">
+              <span class="vx-cf-submit-label"><span class="vx-cf-submit-dot" id="submitDot" hidden aria-hidden="true"></span><span id="submitText">Send Message →</span></span>
+            </button>
+          </form>
+
+          <div id="successCard" class="vx-cf-success" hidden>
+            <svg class="vx-cf-success-icon" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+              <circle cx="32" cy="32" r="30" stroke="#30D158" stroke-width="2"/>
+              <path d="M20 32l10 10 14-18" stroke="#30D158" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h3 class="vx-cf-success-title">Message sent!</h3>
+            <p class="vx-cf-success-body" id="successBody">Thanks for reaching out. We’ll get back to you within 24 hours.</p>
+            <button type="button" class="vx-cf-btn-secondary" id="sendAnotherBtn">Send another message →</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- SECTION 4 — BOTTOM STRIP -->
+    <div class="vx-cf-strip vx-cf-glass">
+      <span class="vx-cf-strip-left">© 2026 VisionX by ATA IT Solutions</span>
+      <a class="vx-cf-strip-right" href="mailto:hello@ata-itsolutions.com">hello@ata-itsolutions.com</a>
+    </div>
+  </main>
+
+  <footer class="vx-footer">
+    <div class="vx-container vx-footer-inner">
+      <p class="vx-footer-copy">© 2026 VisionX by ATA IT Solutions. All rights reserved.</p>
+      <ul class="vx-footer-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="tool.html">Web Tool</a></li>
+        <li><a href="bg-remover.html">BG Remover</a></li>
+        <li><a href="plugin.html">Plugin</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+  <script src="site-nav.js"></script>
+  <script>
+  (function () {
+    "use strict";
+
+    var form = document.getElementById("contactForm");
+    var formFields = document.getElementById("formFields");
+    var formLoading = document.getElementById("formLoading");
+    var successCard = document.getElementById("successCard");
+    var submitBtn = document.getElementById("submitBtn");
+    var submitText = document.getElementById("submitText");
+    var submitDot = document.getElementById("submitDot");
+    var formSubmitError = document.getElementById("formSubmitError");
+    var fieldName = document.getElementById("fieldName");
+    var fieldEmail = document.getElementById("fieldEmail");
+    var fieldSubject = document.getElementById("fieldSubject");
+    var fieldMessage = document.getElementById("fieldMessage");
+    var errName = document.getElementById("errName");
+    var errEmail = document.getElementById("errEmail");
+    var errSubject = document.getElementById("errSubject");
+    var errMessage = document.getElementById("errMessage");
+    var msgCounter = document.getElementById("msgCounter");
+    var successBody = document.getElementById("successBody");
+    var sendAnotherBtn = document.getElementById("sendAnotherBtn");
+
+    var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    function showError(el, input, show) {
+      if (!el || !input) return;
+      el.hidden = !show;
+      input.classList.toggle("vx-cf-input--error", !!show);
+      var wrap = input.closest(".vx-cf-field");
+      if (wrap) {
+        wrap.classList.toggle("vx-cf-field--error", !!show);
+        if (show) {
+          wrap.classList.remove("vx-cf-shake");
+          void wrap.offsetWidth;
+          wrap.classList.add("vx-cf-shake");
+          setTimeout(function () {
+            wrap.classList.remove("vx-cf-shake");
+          }, 320);
+        }
+      }
+    }
+
+    function validateName() {
+      var v = fieldName && fieldName.value.trim();
+      var ok = !!v;
+      showError(errName, fieldName, !ok);
+      return ok;
+    }
+
+    function validateEmail() {
+      var v = fieldEmail && fieldEmail.value.trim();
+      var ok = !!v && emailRe.test(v);
+      showError(errEmail, fieldEmail, !ok);
+      return ok;
+    }
+
+    function validateSubject() {
+      var v = fieldSubject && fieldSubject.value;
+      var ok = !!v;
+      showError(errSubject, fieldSubject, !ok);
+      return ok;
+    }
+
+    function validateMessage() {
+      var v = fieldMessage ? fieldMessage.value.trim() : "";
+      var ok = v.length >= 20;
+      showError(errMessage, fieldMessage, !ok);
+      return ok;
+    }
+
+    function validateAll() {
+      var a = validateName();
+      var b = validateEmail();
+      var c = validateSubject();
+      var d = validateMessage();
+      return a && b && c && d;
+    }
+
+    function updateCounter() {
+      if (!msgCounter || !fieldMessage) return;
+      var n = fieldMessage.value.length;
+      msgCounter.textContent = n + " / 20 minimum";
+    }
+
+    window.addEventListener("DOMContentLoaded", function () {
+      if (window.location.search.indexOf("success=true") !== -1) {
+        if (form) form.style.display = "none";
+        if (successCard) {
+          successCard.hidden = false;
+          successCard.style.display = "block";
+          requestAnimationFrame(function () {
+            successCard.classList.add("vx-cf-success--in");
+          });
+        }
+        var saved = "";
+        try {
+          saved = sessionStorage.getItem("vxContactEmail") || "";
+        } catch (e) {}
+        if (successBody) {
+          if (saved) {
+            successBody.textContent = "Thanks for reaching out. We’ll get back to you at " + saved + " within 24 hours.";
+          } else {
+            successBody.textContent = "Thanks for reaching out. We’ll get back to you within 24 hours.";
+          }
+        }
+        try {
+          sessionStorage.removeItem("vxContactEmail");
+        } catch (e2) {}
+      }
+
+      updateCounter();
+
+      if (fieldName) {
+        fieldName.addEventListener("blur", validateName);
+      }
+      if (fieldEmail) {
+        fieldEmail.addEventListener("blur", validateEmail);
+      }
+      if (fieldSubject) {
+        fieldSubject.addEventListener("blur", validateSubject);
+      }
+      if (fieldMessage) {
+        fieldMessage.addEventListener("blur", validateMessage);
+        fieldMessage.addEventListener("keyup", updateCounter);
+        fieldMessage.addEventListener("input", updateCounter);
+      }
+
+      if (form) {
+        form.addEventListener("submit", function (e) {
+          formSubmitError.hidden = true;
+          if (!validateAll()) {
+            e.preventDefault();
+            return;
+          }
+          var emailVal = fieldEmail ? fieldEmail.value.trim() : "";
+          try {
+            sessionStorage.setItem("vxContactEmail", emailVal);
+          } catch (err) {}
+          e.preventDefault();
+          if (submitBtn) submitBtn.disabled = true;
+          if (submitText) submitText.textContent = "Sending…";
+          if (submitDot) submitDot.hidden = false;
+          if (formFields) formFields.hidden = true;
+          if (formLoading) formLoading.hidden = false;
+          setTimeout(function () {
+            form.submit();
+          }, 450);
+        });
+      }
+
+      if (sendAnotherBtn) {
+        sendAnotherBtn.addEventListener("click", function () {
+          window.location.href = window.location.pathname;
+        });
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

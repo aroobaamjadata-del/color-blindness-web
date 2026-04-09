@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 12px;
+      background: #202124;
+      color: #e7e7e7;
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 12px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+    b.title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      display: block;
+      margin-bottom: 10px;
+      color: #ffffff;
+    }
+    label {
+      display: block;
+      margin: 10px 0 4px;
+      color: #b8b8b8;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.45px;
+      font-weight: 600;
+    }
+    select, input[type=range], input[type=color] {
+      display: block;
+      width: 100%;
+      margin-bottom: 5px;
+      background: #2f3136;
+      color: #ececec;
+      border: 1px solid #4c4f55;
+      border-radius: 6px;
+      padding: 6px 8px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+    select:focus, input[type=color]:focus, input[type=range]:focus {
+      outline: 1px solid #1788ff;
+      border-color: #1788ff;
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 9px;
+      margin-top: 8px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    #scanBtn  { background: #3a3d42; color: #ececec; border: 1px solid #4d5056; }
+    #applyBtn { background: #0078d4; color: #fff; }
+    #scanBtn:hover  { background: #474b52; }
+    #applyBtn:hover { background: #0a86eb; }
+    #scanBtn:active, #applyBtn:active { transform: translateY(1px); }
+    #results {
+      margin-top: 10px;
+      padding: 10px;
+      background: #17191d;
+      border: 1px solid #363a40;
+      border-radius: 8px;
+      font-size: 11px;
+      color: #d0d0d0;
+      min-height: 72px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.35;
+    }
+    .divider { border: none; border-top: 1px solid #3f434a; margin: 12px 0; }
+    .panel-card {
+      margin-top: 10px;
+      padding: 10px;
+      background: linear-gradient(180deg, #1d1f24 0%, #191b20 100%);
+      border: 1px solid #353941;
+      border-radius: 8px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+    }
+
+    /* Minimal scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <b class="title">Color Blind Guide</b>
+
+  <div class="panel-card">
+    <b style="font-size:12px;">Color Guide (Tap any color)</b>
+    <label style="text-transform:none; letter-spacing:0; font-weight:500;">Pick Color</label>
+    <input id="guideColorInput" type="color" value="#2E8B57">
+    <div style="display:flex;align-items:center;gap:8px;margin:6px 0;">
+      <span id="currentFgText" style="font-size:11px;color:#bcbcbc;">Current FG: —</span>
+      <button id="refreshFgBtn" style="width:auto;padding:5px 10px;background:#333;color:#e0e0e0;border:1px solid #555;margin:0;border-radius:6px;">Refresh FG</button>
+    </div>
+    <button id="useFgColorBtn" style="margin-top:6px;background:#333;color:#e0e0e0;border:1px solid #555;">Use Foreground Color</button>
+    <div id="guideColorDetails" style="margin-top:6px;white-space:pre-wrap;color:#d0d0d0;font-size:11px;">
+Color Name: —
+HEX: —
+RGB: —
+HSL: —
+Appearance: —
+Color Family: —
+    </div>
+  </div>
+
+  <label>Mode</label>
+  <select id="modeSelect">
+    <option value="simulate">Simulate</option>
+    <option value="correct">Correct</option>
+  </select>
+
+  <label>Type</label>
+  <select id="typeSelect">
+    <option value="protanopia">Protanopia (Red-blind)</option>
+    <option value="deuteranopia">Deuteranopia (Green-blind)</option>
+    <option value="tritanopia">Tritanopia (Blue-blind)</option>
+  </select>
+
+  <label>Intensity: <span id="intensityVal">100</span>%</label>
+  <input type="range" id="intensity" min="0" max="100" value="100">
+
+  <hr class="divider">
+
+  <button id="scanBtn">🔍 Scan Document</button>
+  <button id="applyBtn">✅ Apply Fix</button>
+
+  <label style="margin-top:10px; text-transform:none; letter-spacing:0; font-weight:500;">
+    <input type="checkbox" id="previewToggle" checked style="margin-right:6px;">
+    Preview (non-destructive when possible)
+  </label>
+
+  <button id="revertBtn" style="background:#333;color:#e0e0e0;border:1px solid #555;">↩ Revert Last Preview</button>
+  <label style="text-transform:none; letter-spacing:0; font-weight:500;">Export Format</label>
+  <select id="exportFormat">
+    <option value="txt">TXT</option>
+    <option value="pdf">PDF</option>
+  </select>
+  <button id="exportBtn" style="background:#333;color:#e0e0e0;border:1px solid #555;">⬇ Export Report</button>
+
+  <div id="suggestionsSection" class="panel-card" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <b style="font-size:12px;">Suggestions</b>
+      <button id="applySuggestionsBtn" style="width:auto;padding:6px 10px;background:#333;color:#e0e0e0;border:1px solid #555;">Apply selected</button>
+    </div>
+    <div id="suggestionsList" style="margin-top:8px;"></div>
+  </div>
+
+  <div id="results">Ready. Open a document and click Scan.</div>
+
+  <!-- Load engines BEFORE main.js so window.colorEngine / window.contrastChecker exist -->
+  <script src="colorEngine.js"></script>
+  <script src="contrastChecker.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

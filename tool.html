@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en" data-visionx-tool="true">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Color Blindness Simulator — VisionX Web Tool | ATA IT Solutions</title>
+  <meta name="description" content="Upload an image and simulate Protanopia, Deuteranopia, and Tritanopia in your browser. Free VisionX web tool by ATA IT Solutions.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="vx-body">
+
+  <header class="vx-nav-wrap">
+    <div class="vx-nav-row">
+      <a class="vx-logo" href="index.html">VisionX</a>
+      <button type="button" class="vx-nav-toggle" aria-controls="vxPrimaryNav" aria-expanded="false" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="vx-nav" id="vxPrimaryNav" aria-label="Primary">
+        <ul class="vx-nav-list">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="tool.html" aria-current="page">Web Tool</a></li>
+          <li><a href="bg-remover.html">BG Remover</a></li>
+          <li><a href="plugin.html">Plugin</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="vx-tool-main">
+    <!-- SECTION 1 — PAGE HEADER -->
+    <header class="vx-tool-page-header">
+      <div class="vx-tool-page-header-row">
+        <nav class="vx-tool-breadcrumb" aria-label="Breadcrumb">
+          <a href="index.html">VisionX</a> <span class="vx-tool-bc-sep">/</span> <span>Web Tool</span>
+        </nav>
+        <h1 class="vx-tool-page-title">Color Blindness Simulator</h1>
+        <span class="vx-tool-badge-free">Free Tool</span>
+      </div>
+      <p class="vx-tool-page-desc">Upload any image and simulate how it appears to users with Protanopia, Deuteranopia, or Tritanopia.</p>
+    </header>
+
+    <div class="vx-tool-layout">
+      <!-- SECTION 2 — LEFT SIDEBAR -->
+      <aside class="vx-tool-sidebar" id="toolSidebar" aria-label="Controls">
+        <button type="button" class="vx-tool-controls-toggle" id="controlsToggle" aria-expanded="false" aria-controls="toolSidebarInner">
+          Controls <span class="vx-tool-controls-chevron" aria-hidden="true">▾</span>
+        </button>
+        <div class="vx-tool-sidebar-inner" id="toolSidebarInner">
+          <div class="vx-tool-panel vx-tool-glass">
+
+            <!-- A) Upload -->
+            <div class="vx-tool-upload-wrap">
+              <label class="vx-tool-upload-label" for="fileInput">Upload</label>
+              <div class="vx-tool-dropzone vx-tool-glass-inset" id="dropZone">
+                <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+                <div class="vx-tool-upload-prompt" id="uploadPrompt">
+                  <svg class="vx-tool-upload-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path d="M8 32l8-8 6 6 10-12 8 10"/>
+                    <path d="M28 18v-8h-8"/>
+                    <path d="M6 40h36a2 2 0 002-2v-6"/>
+                  </svg>
+                  <span class="vx-tool-upload-title">Drag &amp; Drop or Browse</span>
+                  <span class="vx-tool-upload-hint">PNG, JPG, WebP, GIF supported</span>
+                  <button type="button" class="vx-tool-browse-btn" id="browseBtn">Browse files</button>
+                </div>
+                <div class="vx-tool-upload-thumb-wrap" id="uploadThumbWrap" hidden>
+                  <img class="vx-tool-upload-thumb" id="uploadThumb" alt="Upload preview">
+                </div>
+              </div>
+              <p class="vx-tool-hint" id="uploadError" hidden style="color:#FF453A;margin-top:0.35rem"></p>
+            </div>
+
+            <!-- Hidden select — synced with mode pills (values used by simulation logic) -->
+            <label class="vx-tool-label" for="typeSelect">Simulation Mode</label>
+            <select id="typeSelect" class="vx-tool-sr-only" aria-hidden="true" tabindex="-1">
+              <option value="normal" selected>Normal</option>
+              <option value="protanopia">Protanopia</option>
+              <option value="deuteranopia">Deuteranopia</option>
+              <option value="tritanopia">Tritanopia</option>
+            </select>
+            <div class="vx-tool-mode-grid" id="modePills" role="group" aria-label="Simulation mode">
+              <button type="button" class="vx-tool-mode-btn vx-tool-mode-btn--active" data-mode="normal" aria-pressed="true">
+                <span class="vx-tool-mode-dot vx-tool-mode-dot--gray"></span> Normal
+              </button>
+              <button type="button" class="vx-tool-mode-btn" data-mode="protanopia" aria-pressed="false">
+                <span class="vx-tool-mode-dot vx-tool-mode-dot--red"></span> Protanopia
+              </button>
+              <button type="button" class="vx-tool-mode-btn" data-mode="deuteranopia" aria-pressed="false">
+                <span class="vx-tool-mode-dot vx-tool-mode-dot--green"></span> Deuteranopia
+              </button>
+              <button type="button" class="vx-tool-mode-btn" data-mode="tritanopia" aria-pressed="false">
+                <span class="vx-tool-mode-dot vx-tool-mode-dot--blue"></span> Tritanopia
+              </button>
+            </div>
+
+            <!-- C) Intensity -->
+            <div class="vx-tool-intensity-head">
+              <label class="vx-tool-label vx-tool-label--inline" for="intensity">Intensity</label>
+              <span class="vx-tool-intensity-val" id="intensityVal">100%</span>
+            </div>
+            <input type="range" id="intensity" class="vx-tool-intensity-input" min="0" max="100" value="100">
+            <p class="vx-tool-hint">Adjust simulation strength</p>
+
+            <!-- Color Swap -->
+            <label class="vx-tool-label" for="sourceColor">Color Swap</label>
+            <label class="vx-tool-hint" style="display:flex;align-items:center;gap:0.5rem;margin:0.25rem 0 0.45rem;">
+              <input id="enableColorSwap" type="checkbox" checked>
+              Enable Color Swap
+            </label>
+            <div class="vx-tool-intensity-head" style="margin-top:0.3rem">
+              <label class="vx-tool-label vx-tool-label--inline" for="sourceColor">Source Color</label>
+              <span class="vx-tool-hint">Replace from</span>
+            </div>
+            <input id="sourceColor" type="color" value="#ff0000" aria-label="Source color">
+            <div class="vx-tool-hint" style="display:flex;align-items:center;gap:0.45rem;margin-top:0.3rem;">
+              <span id="sourceColorPreview" style="width:16px;height:16px;border-radius:4px;background:#ff0000;border:1px solid rgba(255,255,255,0.25);display:inline-block"></span>
+              <span id="sourceColorHex">#FF0000</span>
+            </div>
+            <button type="button" class="vx-tool-btn vx-tool-btn-outline" id="pickSourceColorBtn" style="margin-top:0.4rem">
+              Pick Color from Image
+            </button>
+            <div class="vx-tool-intensity-head" style="margin-top:0.5rem">
+              <label class="vx-tool-label vx-tool-label--inline" for="targetColor">Target Color</label>
+              <span class="vx-tool-hint">Replace to</span>
+            </div>
+            <input id="targetColor" type="color" value="#3b82f6" aria-label="Target color">
+            <div class="vx-tool-hint" style="display:flex;align-items:center;gap:0.45rem;margin-top:0.3rem;">
+              <span id="targetColorPreview" style="width:16px;height:16px;border-radius:4px;background:#3b82f6;border:1px solid rgba(255,255,255,0.25);display:inline-block"></span>
+              <span id="targetColorHex">#3B82F6</span>
+            </div>
+            <div class="vx-tool-intensity-head" style="margin-top:0.6rem">
+              <label class="vx-tool-label vx-tool-label--inline">Preset Targets</label>
+              <span class="vx-tool-hint">Choose and apply</span>
+            </div>
+            <div id="colorPresetList" class="vx-tool-glass-inset" style="padding:0.55rem;display:grid;gap:0.45rem;"></div>
+            <div class="vx-tool-intensity-head" style="margin-top:0.55rem">
+              <label class="vx-tool-label vx-tool-label--inline" for="colorTolerance">Tolerance</label>
+              <span class="vx-tool-intensity-val" id="colorToleranceVal">20</span>
+            </div>
+            <input type="range" id="colorTolerance" class="vx-tool-intensity-input" min="0" max="100" step="1" value="20">
+            <p class="vx-tool-hint">Higher values match a wider color range</p>
+
+            <!-- Hue Shift -->
+            <div class="vx-tool-intensity-head" style="margin-top:0.55rem">
+              <label class="vx-tool-label vx-tool-label--inline" for="hueShift">Hue Shift</label>
+              <span class="vx-tool-intensity-val" id="hueShiftVal">0°</span>
+            </div>
+            <input type="range" id="hueShift" class="vx-tool-intensity-input" min="-180" max="180" step="1" value="0">
+            <p class="vx-tool-hint">Rotate hue for creative and accessibility tuning</p>
+
+            <!-- Luminance Contrast -->
+            <div class="vx-tool-intensity-head" style="margin-top:0.55rem">
+              <label class="vx-tool-label vx-tool-label--inline" for="luminanceContrast">Luminance Contrast</label>
+              <span class="vx-tool-intensity-val" id="luminanceContrastVal">0</span>
+            </div>
+            <input type="range" id="luminanceContrast" class="vx-tool-intensity-input" min="-100" max="100" step="1" value="0">
+            <p class="vx-tool-hint">Adjust image contrast (-100 to +100)</p>
+
+            <!-- Texture Overlay -->
+            <label class="vx-tool-label" for="textureType">Texture Overlay</label>
+            <select id="textureType" class="vx-tool-select">
+              <option value="none" selected>None</option>
+              <option value="dots">Dots</option>
+              <option value="stripes">Stripes</option>
+              <option value="grid">Grid</option>
+            </select>
+            <div class="vx-tool-intensity-head" style="margin-top:0.55rem">
+              <label class="vx-tool-label vx-tool-label--inline" for="textureIntensity">Texture Intensity</label>
+              <span class="vx-tool-intensity-val" id="textureIntensityVal">0.30</span>
+            </div>
+            <input type="range" id="textureIntensity" class="vx-tool-intensity-input" min="0" max="1" step="0.01" value="0.30">
+            <p class="vx-tool-hint">Pattern blend strength (0 to 1)</p>
+
+            <!-- D) Actions -->
+            <div class="vx-tool-actions">
+              <button type="button" class="vx-tool-btn vx-tool-btn-outline" id="compareBtn" title="Hold to see original">
+                <span class="vx-tool-btn-ico" aria-hidden="true">⇄</span> <span id="compareBtnLabel">Hold: Before / After</span>
+              </button>
+              <button type="button" class="vx-tool-btn vx-tool-btn-primary" id="downloadBtn">
+                <span class="vx-tool-btn-ico" aria-hidden="true">↓</span> Download PNG
+              </button>
+              <a class="vx-tool-btn vx-tool-btn-outline" href="assets/plugin/VisionX-Photoshop-Plugin.zip" download="VisionX-Photoshop-Plugin.zip">
+                <span class="vx-tool-btn-ico" aria-hidden="true">↓</span> Download Photoshop plugin (.zip)
+              </a>
+              <button type="button" class="vx-tool-btn vx-tool-btn-danger" id="resetBtn">
+                <span class="vx-tool-btn-ico" aria-hidden="true">↺</span> Reset
+              </button>
+            </div>
+
+            <!-- E) WCAG Contrast -->
+            <p class="vx-tool-label">Contrast Info</p>
+            <div class="vx-tool-contrast vx-tool-glass-inset" id="contrastPanel">
+              <div class="vx-tool-contrast-swatches">
+                <div class="vx-tool-swatch-wrap">
+                  <span class="vx-tool-swatch-label">FG</span>
+                  <div class="vx-tool-swatch" id="contrastFgSwatch" title="Foreground"></div>
+                  <span class="vx-tool-hint" id="contrastFgHex" style="display:block;margin-top:0.2rem;font-size:0.8125rem;color:#d1d1d6;font-family:ui-monospace,monospace;min-height:1.2em"></span>
+                </div>
+                <div class="vx-tool-swatch-wrap">
+                  <span class="vx-tool-swatch-label">BG</span>
+                  <div class="vx-tool-swatch" id="contrastBgSwatch" title="Background"></div>
+                  <span class="vx-tool-hint" id="contrastBgHex" style="display:block;margin-top:0.2rem;font-size:0.8125rem;color:#d1d1d6;font-family:ui-monospace,monospace;min-height:1.2em"></span>
+                </div>
+              </div>
+              <div class="vx-tool-contrast-ratio" id="contrastRatio">—</div>
+              <div class="vx-tool-contrast-badge" id="contrastBadge" data-state="neutral">—</div>
+              <p class="vx-tool-contrast-hint" id="contrastHint">Click image to set foreground</p>
+            </div>
+
+            <!-- F) Shortcuts -->
+            <p class="vx-tool-label">Shortcuts</p>
+            <div class="vx-tool-shortcuts vx-tool-glass-inset">
+              <ul class="vx-tool-shortcuts-list">
+                <li><kbd>P</kbd> Protanopia</li>
+                <li><kbd>D</kbd> Deuteranopia</li>
+                <li><kbd>T</kbd> Tritanopia</li>
+                <li><kbd>N</kbd> Normal</li>
+                <li><kbd>Space</kbd> Hold Before/After</li>
+                <li><kbd>R</kbd> Reset</li>
+                <li><kbd>S</kbd> Save PNG</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- SECTION 3 — CANVAS -->
+      <section class="vx-tool-canvas-col" aria-label="Image preview">
+        <div class="vx-tool-canvas-glow" aria-hidden="true"></div>
+        <div class="vx-tool-canvas-panel vx-tool-glass" id="canvasPanel">
+          <div class="vx-tool-canvas-stage" id="canvasStage">
+            <div class="vx-tool-empty" id="emptyState">
+              <svg class="vx-tool-empty-icon" viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="1.25" aria-hidden="true">
+                <ellipse cx="40" cy="40" rx="28" ry="18"/>
+                <circle cx="40" cy="40" r="6"/>
+              </svg>
+              <p class="vx-tool-empty-title">No image loaded</p>
+              <p class="vx-tool-empty-sub">Upload an image from the controls panel to begin simulation.</p>
+              <button type="button" class="vx-tool-btn vx-tool-btn-primary" id="emptyUploadBtn">Upload Image →</button>
+            </div>
+            <div class="vx-tool-canvas-inner" id="canvasInner" hidden>
+              <canvas id="toolCanvas" width="800" height="500" aria-label="Simulated image"></canvas>
+              <div class="vx-tool-canvas-label vx-tool-canvas-label--bl">Original View</div>
+              <div class="vx-tool-canvas-label vx-tool-canvas-label--br" id="modeLabel">
+                <span class="vx-tool-mode-dot vx-tool-mode-dot--gray" id="modeLabelDot" aria-hidden="true"></span>
+                <span id="modeLabelText">Normal Vision</span>
+              </div>
+            </div>
+          </div>
+          <div class="vx-tool-processing" id="processingIndicator" hidden>
+            <span class="vx-tool-processing-dot" aria-hidden="true"></span>
+            <span id="processingText">Processing pixels…</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- SECTION 4 — BOTTOM INFO BAR -->
+    <div class="vx-tool-bottombar vx-tool-glass" role="region" aria-label="Status">
+      <p class="vx-tool-bottombar-item vx-tool-bottombar-left">Processing happens 100% in your browser. No data is uploaded.</p>
+      <p class="vx-tool-bottombar-item vx-tool-bottombar-center" id="imageInfo" hidden>
+        <span id="imageFileName"></span>
+        <span class="vx-tool-dot-sep" aria-hidden="true">·</span>
+        <span id="imageDims"></span>
+      </p>
+      <a class="vx-tool-bottombar-item vx-tool-bottombar-right" href="assets/plugin/VisionX-Photoshop-Plugin.zip" download="VisionX-Photoshop-Plugin.zip">Download Photoshop plugin (.zip) →</a>
+    </div>
+
+    <!-- SECTION 5 — PLUGIN BANNER -->
+    <section class="vx-tool-plugin-banner" aria-labelledby="vx-tool-plugin-h">
+      <div class="vx-tool-plugin-glow" aria-hidden="true"></div>
+      <div class="vx-tool-plugin-inner">
+        <div class="vx-tool-plugin-copy">
+          <p class="vx-tool-plugin-eyebrow">Also available for</p>
+          <h2 id="vx-tool-plugin-h" class="vx-tool-plugin-title">Adobe Photoshop Plugin</h2>
+          <p class="vx-tool-plugin-body">Use VisionX directly inside Photoshop on any layer, smart object, or artboard.</p>
+          <a class="vx-tool-btn vx-tool-btn-primary" href="assets/plugin/VisionX-Photoshop-Plugin.zip" download="VisionX-Photoshop-Plugin.zip">Download Free Plugin (.zip) →</a>
+        </div>
+        <div class="vx-tool-plugin-pills" aria-hidden="true">
+          <span class="vx-tool-deco-pill">Protanopia</span>
+          <span class="vx-tool-deco-pill vx-tool-deco-pill--active">Deuteranopia</span>
+          <span class="vx-tool-deco-pill">Tritanopia</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="vx-footer">
+    <div class="vx-container vx-footer-inner">
+      <p class="vx-footer-copy">© 2026 VisionX by ATA IT Solutions. All rights reserved.</p>
+      <ul class="vx-footer-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="tool.html">Web Tool</a></li>
+        <li><a href="bg-remover.html">BG Remover</a></li>
+        <li><a href="plugin.html">Plugin</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="colorEngine.js"></script>
+  <script src="contrastChecker.js"></script>
+  <script src="colorSwap.js"></script>
+  <script src="textureOverlay.js"></script>
+  <script src="main.js"></script>
+  <script src="site-nav.js"></script>
+</body>
+</html>

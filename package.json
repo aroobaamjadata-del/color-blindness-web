@@ -1,0 +1,17 @@
+{
+  "name": "visionx-web",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build-dist.cjs",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.1",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^8.23.0",
+    "multer": "^2.1.1"
+  }
+}

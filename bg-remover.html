@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en" data-visionx-tool="true">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BG Remover — VisionX | ATA IT Solutions</title>
+  <meta name="description" content="Upload an image and generate a quick background-removed output preview.">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .vx-bg-wrap { max-width: 1080px; margin: 0 auto; }
+    .vx-bg-upload-panel { margin: 0 auto 1rem; padding: 1rem; }
+    .vx-bg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .vx-bg-card { min-height: 340px; }
+    .vx-bg-canvas-shell {
+      display: block;
+      position: relative;
+      min-height: 280px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      overflow: hidden;
+      background: radial-gradient(circle at 30% 0%, rgba(124, 92, 255, 0.11), transparent 45%), rgba(255, 255, 255, 0.02);
+    }
+    .vx-bg-canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 14px;
+    }
+    .vx-bg-canvas--checker {
+      background-image: linear-gradient(45deg, rgba(255,255,255,0.08) 25%, transparent 25%),
+                        linear-gradient(-45deg, rgba(255,255,255,0.08) 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.08) 75%),
+                        linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.08) 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+    }
+    .vx-bg-actions-compact { margin-top: 0.8rem; justify-content: flex-end; gap: 0.6rem; }
+    .vx-bg-actions-compact .vx-tool-btn { min-height: 40px; padding: 0.56rem 0.95rem; }
+    @media (max-width: 1200px) {
+      .vx-bg-wrap { max-width: 100%; }
+    }
+    @media (max-width: 900px) {
+      .vx-bg-grid { grid-template-columns: 1fr; }
+      .vx-bg-upload-panel { padding: 0.85rem; }
+      .vx-bg-card { min-height: 300px; }
+      .vx-bg-canvas-shell { min-height: 240px; }
+      .vx-bg-actions-compact { justify-content: stretch; }
+      .vx-bg-actions-compact .vx-tool-btn { flex: 1 1 0; min-width: 0; }
+    }
+    @media (max-width: 640px) {
+      .vx-bg-upload-panel { padding: 0.72rem; margin-bottom: 0.8rem; }
+      .vx-bg-card { min-height: 270px; }
+      .vx-bg-canvas-shell { min-height: 200px; }
+      .vx-bg-actions-compact { flex-wrap: wrap; gap: 0.5rem; }
+      .vx-bg-actions-compact .vx-tool-btn { flex: 1 1 calc(50% - 0.25rem); min-height: 38px; }
+      .vx-tool-page-header-row { gap: 0.5rem; }
+      .vx-tool-page-title { font-size: clamp(1.45rem, 7vw, 2rem); line-height: 1.14; }
+      .vx-tool-page-desc { font-size: 0.95rem; line-height: 1.45; }
+      .vx-tool-breadcrumb { font-size: 0.78rem; }
+    }
+  </style>
+</head>
+<body class="vx-body">
+
+  <header class="vx-nav-wrap">
+    <div class="vx-nav-row">
+      <a class="vx-logo" href="index.html">VisionX</a>
+      <button type="button" class="vx-nav-toggle" aria-controls="vxPrimaryNav" aria-expanded="false" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="vx-nav" id="vxPrimaryNav" aria-label="Primary">
+        <ul class="vx-nav-list">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="tool.html">Web Tool</a></li>
+          <li><a href="bg-remover.html" aria-current="page">BG Remover</a></li>
+          <li><a href="plugin.html">Plugin</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="vx-tool-main">
+    <header class="vx-tool-page-header">
+      <div class="vx-tool-page-header-row">
+        <nav class="vx-tool-breadcrumb" aria-label="Breadcrumb">
+          <a href="index.html">VisionX</a> <span class="vx-tool-bc-sep">/</span> <span>BG Remover</span>
+        </nav>
+        <h1 class="vx-tool-page-title">Background Remover</h1>
+        <span class="vx-tool-badge-free">Free Tool</span>
+      </div>
+      <p class="vx-tool-page-desc">Upload one image and preview original vs background-removed output side by side.</p>
+    </header>
+
+    <section class="vx-tool-panel vx-tool-glass vx-bg-upload-panel">
+      <label class="vx-tool-upload-label" for="bgFileInput">Input image</label>
+      <p class="vx-tool-hint" id="bgBackendStatus" style="margin-bottom:0.45rem;">
+        Backend: checking connection...
+      </p>
+      <div class="vx-tool-dropzone vx-tool-glass-inset" id="bgDropZone">
+        <input type="file" id="bgFileInput" accept="image/png,image/jpeg,image/webp" hidden>
+        <div class="vx-tool-upload-prompt" id="bgUploadPrompt">
+          <span class="vx-tool-upload-title">Drag &amp; Drop or Browse</span>
+          <span class="vx-tool-upload-hint">PNG, JPG, WebP supported</span>
+          <button type="button" class="vx-tool-browse-btn" id="bgBrowseBtn">Browse files</button>
+        </div>
+      </div>
+      <p class="vx-tool-hint" id="bgError" hidden style="color:#FF453A;margin-top:0.45rem"></p>
+    </section>
+
+    <section class="vx-bg-wrap vx-bg-grid" aria-label="Original and output preview cards">
+      <article class="vx-tool-canvas-panel vx-tool-glass vx-tool-canvas-panel--active vx-bg-card">
+        <div class="vx-tool-canvas-stage" style="padding:0.9rem;">
+          <div class="vx-tool-canvas-inner vx-bg-canvas-shell">
+            <canvas id="bgOriginalCanvas" width="460" height="280" class="vx-bg-canvas"></canvas>
+            <div class="vx-tool-canvas-label vx-tool-canvas-label--bl">Original</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="vx-tool-canvas-panel vx-tool-glass vx-tool-canvas-panel--active vx-bg-card">
+        <div class="vx-tool-canvas-stage" style="padding:0.9rem;">
+          <div class="vx-tool-canvas-inner vx-bg-canvas-shell">
+            <canvas id="bgOutputCanvas" width="460" height="280" class="vx-bg-canvas vx-bg-canvas--checker"></canvas>
+            <div class="vx-tool-canvas-label vx-tool-canvas-label--br">Output</div>
+          </div>
+          <div class="vx-tool-actions vx-bg-actions-compact">
+            <button type="button" class="vx-tool-btn vx-tool-btn-outline" id="bgCopyBtn">Copy</button>
+            <button type="button" class="vx-tool-btn vx-tool-btn-outline" id="bgRetryBtn">Retry</button>
+            <button type="button" class="vx-tool-btn vx-tool-btn-primary" id="bgDownloadBtn">Download</button>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="vx-footer">
+    <div class="vx-container vx-footer-inner">
+      <p class="vx-footer-copy">© 2026 VisionX by ATA IT Solutions. All rights reserved.</p>
+      <ul class="vx-footer-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="tool.html">Web Tool</a></li>
+        <li><a href="bg-remover.html" aria-current="page">BG Remover</a></li>
+        <li><a href="plugin.html">Plugin</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="site-nav.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      var fileInput = document.getElementById("bgFileInput");
+      var browseBtn = document.getElementById("bgBrowseBtn");
+      var dropZone = document.getElementById("bgDropZone");
+      var errorEl = document.getElementById("bgError");
+      var backendStatusEl = document.getElementById("bgBackendStatus");
+      var origCanvas = document.getElementById("bgOriginalCanvas");
+      var outCanvas = document.getElementById("bgOutputCanvas");
+      var copyBtn = document.getElementById("bgCopyBtn");
+      var retryBtn = document.getElementById("bgRetryBtn");
+      var downloadBtn = document.getElementById("bgDownloadBtn");
+      var octx = origCanvas.getContext("2d", { willReadFrequently: true });
+      var xctx = outCanvas.getContext("2d", { willReadFrequently: true });
+      var loadedName = "bg-removed.png";
+      var currentFile = null;
+      var isProcessing = false;
+
+      var ALLOWED = { "image/png": true, "image/jpeg": true, "image/webp": true };
+
+      function showError(msg) {
+        if (!errorEl) return;
+        errorEl.hidden = false;
+        errorEl.textContent = msg;
+      }
+
+      function setBackendStatus(ok, text) {
+        if (!backendStatusEl) return;
+        backendStatusEl.textContent = text || (ok ? "Backend: connected" : "Backend: not reachable");
+        backendStatusEl.style.color = ok ? "#30D158" : "#FF453A";
+      }
+
+      function clearError() {
+        if (!errorEl) return;
+        errorEl.hidden = true;
+        errorEl.textContent = "";
+      }
+
+      function fitSize(iw, ih, mw, mh) {
+        var s = Math.min(mw / iw, mh / ih, 1);
+        return { w: Math.max(1, Math.round(iw * s)), h: Math.max(1, Math.round(ih * s)) };
+      }
+
+      function clamp(v) {
+        if (v < 0) return 0;
+        if (v > 255) return 255;
+        return v;
+      }
+
+      function setBusy(busy) {
+        isProcessing = !!busy;
+        if (browseBtn) browseBtn.disabled = isProcessing;
+        if (retryBtn) retryBtn.disabled = isProcessing || !currentFile;
+        if (downloadBtn) downloadBtn.disabled = isProcessing || !outCanvas.width;
+        if (copyBtn) copyBtn.disabled = isProcessing || !outCanvas.width;
+      }
+
+      function getApiBase() {
+        if (window.VISIONX_BG_API && typeof window.VISIONX_BG_API === "string") {
+          return window.VISIONX_BG_API.replace(/\/$/, "");
+        }
+        if (window.location.protocol === "file:") return "http://127.0.0.1:8000";
+        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+          return "http://127.0.0.1:8000";
+        }
+        return window.location.origin;
+      }
+
+      function drawResultBlob(blob) {
+        var url = URL.createObjectURL(blob);
+        var img = new Image();
+        img.onload = function () {
+          xctx.clearRect(0, 0, outCanvas.width, outCanvas.height);
+          var t = document.createElement("canvas");
+          t.width = img.naturalWidth || img.width;
+          t.height = img.naturalHeight || img.height;
+          var tctx = t.getContext("2d", { willReadFrequently: true });
+          tctx.drawImage(img, 0, 0);
+
+          // Trim transparent margins so subject fills the output card more naturally.
+          var id = tctx.getImageData(0, 0, t.width, t.height).data;
+          var minX = t.width, minY = t.height, maxX = -1, maxY = -1;
+          for (var y = 0; y < t.height; y++) {
+            var row = y * t.width * 4;
+            for (var x = 0; x < t.width; x++) {
+              var a = id[row + x * 4 + 3];
+              if (a > 8) {
+                if (x < minX) minX = x;
+                if (y < minY) minY = y;
+                if (x > maxX) maxX = x;
+                if (y > maxY) maxY = y;
+              }
+            }
+          }
+
+          if (maxX >= minX && maxY >= minY) {
+            var sw = maxX - minX + 1;
+            var sh = maxY - minY + 1;
+            var scale = Math.min(outCanvas.width / sw, outCanvas.height / sh);
+            var dw = Math.max(1, Math.round(sw * scale));
+            var dh = Math.max(1, Math.round(sh * scale));
+            var dx = Math.round((outCanvas.width - dw) / 2);
+            var dy = Math.round((outCanvas.height - dh) / 2);
+            xctx.drawImage(t, minX, minY, sw, sh, dx, dy, dw, dh);
+          } else {
+            xctx.drawImage(img, 0, 0, outCanvas.width, outCanvas.height);
+          }
+
+          URL.revokeObjectURL(url);
+          setBusy(false);
+        };
+        img.onerror = function () {
+          URL.revokeObjectURL(url);
+          showError("Could not render processed output.");
+          setBusy(false);
+        };
+        img.src = url;
+      }
+
+      async function requestBackgroundRemoval(file) {
+        if (!file) {
+          showError("Upload an image first.");
+          return;
+        }
+        setBusy(true);
+        clearError();
+        setBackendStatus(true, "Backend: processing image... first run can take 2-5 minutes");
+        var form = new FormData();
+        form.append("image", file);
+        try {
+          var res = await fetch(getApiBase() + "/image/remove", {
+            method: "POST",
+            body: form
+          });
+          if (!res.ok) {
+            var detail = "";
+            try {
+              var json = await res.json();
+              detail = json && (json.detail || json.message) ? (" " + (json.detail || json.message)) : "";
+            } catch (_err) {}
+            throw new Error("Background removal failed." + detail);
+          }
+          setBackendStatus(true, "Backend: connected");
+          var blob = await res.blob();
+          drawResultBlob(blob);
+        } catch (err) {
+          setBackendStatus(false, "Backend: not reachable");
+          showError(err.message || "Background removal failed.");
+          setBusy(false);
+        }
+      }
+
+      async function pingBackend() {
+        var base = getApiBase();
+        try {
+          var res = await fetch(base + "/health", { method: "GET" });
+          setBackendStatus(res.ok, res.ok ? "Backend: connected" : "Backend: not reachable");
+        } catch (_e) {
+          setBackendStatus(false, "Backend: not reachable");
+        }
+      }
+
+      function loadFile(file) {
+        if (!file) return;
+        if (!ALLOWED[file.type]) {
+          showError("Please upload PNG, JPG, or WebP.");
+          return;
+        }
+        clearError();
+        currentFile = file;
+        loadedName = (file.name || "bg-removed").replace(/\.[^.]+$/, "") + "-bg-removed.png";
+        var reader = new FileReader();
+        reader.onload = function () {
+          var img = new Image();
+          img.onload = function () {
+            var fitted = fitSize(img.naturalWidth, img.naturalHeight, 920, 520);
+            origCanvas.width = fitted.w;
+            origCanvas.height = fitted.h;
+            outCanvas.width = fitted.w;
+            outCanvas.height = fitted.h;
+            octx = origCanvas.getContext("2d", { willReadFrequently: true });
+            xctx = outCanvas.getContext("2d", { willReadFrequently: true });
+            octx.clearRect(0, 0, fitted.w, fitted.h);
+            xctx.clearRect(0, 0, fitted.w, fitted.h);
+            octx.drawImage(img, 0, 0, fitted.w, fitted.h);
+            requestBackgroundRemoval(file);
+          };
+          img.onerror = function () { showError("Could not load this image."); };
+          img.src = reader.result;
+        };
+        reader.onerror = function () { showError("Could not read file."); };
+        reader.readAsDataURL(file);
+      }
+
+      function retryProcessing() {
+        if (!currentFile) {
+          showError("Upload an image first.");
+          return;
+        }
+        requestBackgroundRemoval(currentFile);
+      }
+
+      function downloadOutput() {
+        if (!outCanvas.width || !outCanvas.height) {
+          showError("No output to download yet.");
+          return;
+        }
+        clearError();
+        var a = document.createElement("a");
+        a.href = outCanvas.toDataURL("image/png");
+        a.download = loadedName;
+        a.rel = "noopener";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+
+      function copyOutput() {
+        if (!outCanvas.width || !outCanvas.height) {
+          showError("No output to copy yet.");
+          return;
+        }
+        if (!navigator.clipboard || !window.ClipboardItem) {
+          showError("Copy is not supported in this browser.");
+          return;
+        }
+        outCanvas.toBlob(function (blob) {
+          if (!blob) {
+            showError("Could not copy output.");
+            return;
+          }
+          navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]).then(function () {
+            clearError();
+          }).catch(function () {
+            showError("Clipboard permission denied.");
+          });
+        }, "image/png");
+      }
+
+      if (browseBtn) browseBtn.addEventListener("click", function () { fileInput.click(); });
+      if (fileInput) fileInput.addEventListener("change", function () {
+        if (fileInput.files && fileInput.files[0]) loadFile(fileInput.files[0]);
+      });
+      if (dropZone) {
+        dropZone.addEventListener("dragover", function (e) { e.preventDefault(); dropZone.classList.add("vx-tool-dropzone--drag"); });
+        dropZone.addEventListener("dragleave", function () { dropZone.classList.remove("vx-tool-dropzone--drag"); });
+        dropZone.addEventListener("drop", function (e) {
+          e.preventDefault();
+          dropZone.classList.remove("vx-tool-dropzone--drag");
+          var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+          if (f) loadFile(f);
+        });
+      }
+      if (retryBtn) retryBtn.addEventListener("click", retryProcessing);
+      if (downloadBtn) downloadBtn.addEventListener("click", downloadOutput);
+      if (copyBtn) copyBtn.addEventListener("click", copyOutput);
+      setBusy(false);
+      pingBackend();
+    })();
+  </script>
+</body>
+</html>

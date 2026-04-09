@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en" data-visionx-marketing="true">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VisionX — Color Blindness Accessibility | ATA IT Solutions</title>
+  <meta name="description" content="Simulate color blindness, check WCAG contrast, and design inclusively. Free web tool and Photoshop plugin by ATA IT Solutions.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="vx-body">
+
+  <header class="vx-nav-wrap">
+    <div class="vx-nav-row vx-reveal">
+      <a class="vx-logo" href="index.html">VisionX</a>
+      <button type="button" class="vx-nav-toggle" aria-controls="vxPrimaryNav" aria-expanded="false" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="vx-nav" id="vxPrimaryNav" aria-label="Primary">
+        <ul class="vx-nav-list">
+          <li><a href="index.html" aria-current="page">Home</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="tool.html">Web Tool</a></li>
+          <li><a href="bg-remover.html">BG Remover</a></li>
+          <li><a href="plugin.html">Plugin</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- SECTION 1 — HERO -->
+    <section class="vx-hero hero-section" aria-labelledby="vx-hero-title">
+      <div class="hero-orbs" aria-hidden="true">
+        <div class="hero-orb hero-orb--1"></div>
+        <div class="hero-orb hero-orb--2"></div>
+        <div class="hero-orb hero-orb--3"></div>
+        <div class="hero-orb hero-orb--4"></div>
+        <div class="hero-orb hero-orb--5"></div>
+      </div>
+      <div class="vx-hero-glow" aria-hidden="true"></div>
+      <div class="vx-container vx-hero-inner vx-hero-content">
+        <p class="vx-badge hero-badge"><span class="vx-badge-dot"></span> Now Available — Photoshop Plugin + Web Tool</p>
+        <h1 id="vx-hero-title" class="vx-hero-headline">
+          <span class="vx-hero-line vx-gradient-text vx-gradient-text--shimmer hero-headline-1">See the World</span>
+          <span class="vx-hero-line vx-gradient-text vx-gradient-text--shimmer hero-headline-2">Through Every Eye.</span>
+          <span class="vx-hero-sub hero-subline">Color blindness accessibility for designers, developers, and creators.</span>
+        </h1>
+        <div class="vx-hero-cta hero-ctas">
+          <a class="vx-btn vx-btn-primary" href="tool.html">Try Free in Browser →</a>
+          <a class="vx-btn vx-btn-secondary" href="assets/plugin/VisionX-Photoshop-Plugin.zip" download="VisionX-Photoshop-Plugin.zip">Download Photoshop Plugin (.zip)</a>
+        </div>
+        <ul class="vx-trust hero-trust" aria-label="Trust highlights">
+          <li class="vx-trust-item">
+            <svg class="vx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+            No signup required
+          </li>
+          <li class="vx-trust-item">
+            <svg class="vx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3l7 4v5c0 5-3.5 9-7 10-3.5-1-7-5-7-10V7l7-4z"/></svg>
+            100% client-side
+          </li>
+          <li class="vx-trust-item">
+            <svg class="vx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>
+            WCAG 2.1 compliant
+          </li>
+        </ul>
+        <div class="vx-hero-visual vx-glass hero-visual" aria-label="Preview: typical vision compared to Protanopia simulation">
+          <div class="hero-visual-float">
+            <div class="vx-hero-visual-labels">
+              <span>Typical</span>
+              <span>Protanopia</span>
+            </div>
+            <div class="vx-hero-canvas-wrap">
+              <canvas id="vx-hero-canvas" width="960" height="540" role="img" aria-label="Split preview image"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2 — STATS -->
+    <section id="vx-stats" class="vx-stats anim-fadein" aria-label="VisionX at a glance">
+      <div class="vx-container vx-stats-inner">
+        <div class="vx-stat">
+          <div class="vx-stat-num anim-scalein" data-vx-count="3" data-vx-suffix="">0</div>
+          <p class="vx-stat-label">Color Blindness Modes</p>
+        </div>
+        <div class="vx-stat">
+          <div class="vx-stat-num anim-scalein" data-vx-count="300" data-vx-suffix="M+">0</div>
+          <p class="vx-stat-label">People affected worldwide</p>
+        </div>
+        <div class="vx-stat">
+          <div class="vx-stat-num anim-scalein" data-vx-count="100" data-vx-suffix="%">0</div>
+          <p class="vx-stat-label">Client-side, zero upload</p>
+        </div>
+        <div class="vx-stat vx-stat-wcag">
+          <div class="vx-stat-num vx-stat-num--text anim-scalein">WCAG</div>
+          <p class="vx-stat-label">2.1 AA / AAA Ready</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3 — FEATURES -->
+    <section class="vx-section" aria-labelledby="vx-offers-title">
+      <div class="vx-container">
+        <h2 id="vx-offers-title" class="vx-section-title anim-fadeup">What VisionX offers</h2>
+        <p class="vx-section-lead anim-fadein">Professional tools to design, test, and ship accessible color.</p>
+        <div class="vx-feature-grid">
+          <article class="vx-card vx-glass anim-stagger anim-fadeup">
+            <div class="vx-card-icon" aria-hidden="true">👁</div>
+            <h3 class="vx-card-title">Color Blindness Simulation</h3>
+            <p class="vx-card-body">Simulate Protanopia, Deuteranopia, and Tritanopia in real-time using clinically accurate Brettel/Viénot color matrices — pixel by pixel on HTML5 Canvas.</p>
+            <a class="vx-card-link" href="tool.html">Try it →</a>
+          </article>
+          <article class="vx-card vx-glass anim-stagger anim-fadeup">
+            <div class="vx-card-icon vx-card-icon-svg" aria-hidden="true">
+              <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.5"/><path fill="currentColor" d="M16 2a14 14 0 0 1 0 28V2z"/></svg>
+            </div>
+            <h3 class="vx-card-title">WCAG Contrast Checker</h3>
+            <p class="vx-card-body">Instantly verify text and background combinations against WCAG 2.1 AA (4.5:1) and AAA (7:1) standards. No extra tools needed.</p>
+            <a class="vx-card-link" href="tool.html">Try it →</a>
+          </article>
+          <article class="vx-card vx-glass anim-stagger anim-fadeup vx-card--new">
+            <span class="vx-card-badge">New</span>
+            <div class="vx-card-icon vx-card-icon-svg" aria-hidden="true">
+              <svg viewBox="0 0 32 32" fill="none"><rect x="4" y="4" width="24" height="24" rx="4" stroke="currentColor" stroke-width="1.5"/><text x="16" y="21" text-anchor="middle" fill="currentColor" font-size="11" font-weight="700" font-family="system-ui,sans-serif">Ps</text></svg>
+            </div>
+            <h3 class="vx-card-title">Photoshop Plugin</h3>
+            <p class="vx-card-body">Bring VisionX directly into Adobe Photoshop. Simulate color blindness on any layer, check contrast, and export accessible palettes — without leaving your canvas.</p>
+            <a class="vx-card-link" href="assets/plugin/VisionX-Photoshop-Plugin.zip" download="VisionX-Photoshop-Plugin.zip">Download Plugin (.zip) →</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4 — HOW IT WORKS -->
+    <section class="vx-section vx-section--muted" aria-labelledby="vx-how-title">
+      <div class="vx-container">
+        <h2 id="vx-how-title" class="vx-section-title anim-fadeup">How it works</h2>
+        <ol class="vx-steps">
+          <li class="vx-step anim-stagger anim-fadeup">
+            <span class="vx-step-num">01</span>
+            <div class="vx-step-body">
+              <h3 class="vx-step-title">Upload Your Image</h3>
+              <p class="vx-step-desc">Drag and drop any PNG, JPG, or WebP directly onto the tool.</p>
+            </div>
+          </li>
+          <li class="vx-step anim-stagger anim-fadeup">
+            <span class="vx-step-num">02</span>
+            <div class="vx-step-body">
+              <h3 class="vx-step-title">Select a Simulation</h3>
+              <p class="vx-step-desc">Choose Protanopia, Deuteranopia, or Tritanopia. Use the intensity slider for partial simulation.</p>
+            </div>
+          </li>
+          <li class="vx-step anim-stagger anim-fadeup">
+            <span class="vx-step-num">03</span>
+            <div class="vx-step-body">
+              <h3 class="vx-step-title">Compare &amp; Download</h3>
+              <p class="vx-step-desc">Hold Before/After to compare. Download as lossless PNG instantly.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- SECTION 5 — TYPES -->
+    <section class="vx-section" aria-labelledby="vx-types-title">
+      <div class="vx-container">
+        <h2 id="vx-types-title" class="vx-section-title anim-fadeup">Color blindness types</h2>
+        <div class="vx-type-grid">
+          <article class="vx-type-card anim-stagger anim-scalein" data-accent="protanopia">
+            <div class="vx-type-accent"></div>
+            <p class="vx-type-label">Red-blind</p>
+            <p class="vx-type-stat">~1% of males</p>
+            <p class="vx-type-body">Reds appear dark or black. Red-green combinations become impossible to distinguish.</p>
+          </article>
+          <article class="vx-type-card anim-stagger anim-scalein" data-accent="deuteranopia">
+            <div class="vx-type-accent"></div>
+            <p class="vx-type-label">Green-blind</p>
+            <p class="vx-type-stat">~6% of males — most common</p>
+            <p class="vx-type-body">The most common form. Greens appear yellowish, red-green confusion is severe.</p>
+          </article>
+          <article class="vx-type-card anim-stagger anim-scalein" data-accent="tritanopia">
+            <div class="vx-type-accent"></div>
+            <p class="vx-type-label">Blue-blind</p>
+            <p class="vx-type-stat">&lt;0.01% — rarest</p>
+            <p class="vx-type-body">Blues appear greenish, yellows appear violet. Very rare but severely impacts blue/yellow UI.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6 — PHOTOSHOP BANNER -->
+    <section class="vx-plugin-banner anim-fadeup" aria-labelledby="vx-plugin-banner-title">
+      <div class="vx-plugin-glow" aria-hidden="true"></div>
+      <div class="vx-container vx-plugin-banner-inner">
+        <div class="vx-plugin-copy">
+          <p class="vx-eyebrow anim-fadein">Now Available</p>
+          <h2 id="vx-plugin-banner-title" class="vx-plugin-headline">VisionX for Photoshop</h2>
+          <p class="vx-plugin-body">Test your designs for color blindness accessibility without ever leaving Adobe Photoshop. Works on all layers, smart objects, and artboards.</p>
+          <a class="vx-btn vx-btn-primary" href="assets/plugin/VisionX-Photoshop-Plugin.zip" download="VisionX-Photoshop-Plugin.zip">Download Free Plugin (.zip) →</a>
+        </div>
+        <div class="vx-plugin-mock vx-glass" aria-hidden="true">
+          <div class="vx-plugin-mock-title">VisionX</div>
+          <p class="vx-plugin-mock-sub">Simulation</p>
+          <div class="vx-plugin-mock-btns">
+            <span class="vx-pill">Protanopia</span>
+            <span class="vx-pill vx-pill--active">Deuteranopia</span>
+            <span class="vx-pill">Tritanopia</span>
+          </div>
+          <div class="vx-plugin-mock-row">
+            <span class="vx-mini-label">Intensity</span>
+            <div class="vx-mini-slider"><span class="vx-mini-slider-fill"></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 7 — FAQ -->
+    <section class="vx-section" aria-labelledby="vx-faq-title">
+      <div class="vx-container vx-faq-wrap">
+        <h2 id="vx-faq-title" class="vx-section-title anim-fadeup">Frequently asked questions</h2>
+        <div class="vx-faq">
+          <div class="vx-faq-item vx-glass anim-stagger anim-fadein">
+            <button type="button" class="vx-faq-trigger" id="vx-faq-b1" aria-expanded="false" aria-controls="vx-faq-p1">
+              <span>What is VisionX?</span>
+              <span class="vx-faq-icon" aria-hidden="true"></span>
+            </button>
+            <div class="vx-faq-panel" id="vx-faq-p1" role="region" aria-labelledby="vx-faq-b1" aria-hidden="true">
+              <p>VisionX is a color blindness accessibility toolkit from ATA IT Solutions. It helps you simulate how interfaces and imagery appear to people with different types of color vision deficiency, and check contrast against WCAG guidelines.</p>
+            </div>
+          </div>
+          <div class="vx-faq-item vx-glass anim-stagger anim-fadein">
+            <button type="button" class="vx-faq-trigger" id="vx-faq-b2" aria-expanded="false" aria-controls="vx-faq-p2">
+              <span>How accurate is the simulation?</span>
+              <span class="vx-faq-icon" aria-hidden="true"></span>
+            </button>
+            <div class="vx-faq-panel" id="vx-faq-p2" role="region" aria-labelledby="vx-faq-b2" aria-hidden="true">
+              <p>VisionX uses established RGB→LMS transforms and dichromacy simulation matrices (Brettel/Viénot style) for Protanopia, Deuteranopia, and Tritanopia. Results are a strong approximation for design review; clinical diagnosis always requires a professional.</p>
+            </div>
+          </div>
+          <div class="vx-faq-item vx-glass anim-stagger anim-fadein">
+            <button type="button" class="vx-faq-trigger" id="vx-faq-b3" aria-expanded="false" aria-controls="vx-faq-p3">
+              <span>Are my images uploaded to a server?</span>
+              <span class="vx-faq-icon" aria-hidden="true"></span>
+            </button>
+            <div class="vx-faq-panel" id="vx-faq-p3" role="region" aria-labelledby="vx-faq-b3" aria-hidden="true">
+              <p>No. The web tool runs entirely in your browser. Images are processed on-device with Canvas; nothing is sent to our servers for simulation or contrast checks.</p>
+            </div>
+          </div>
+          <div class="vx-faq-item vx-glass anim-stagger anim-fadein">
+            <button type="button" class="vx-faq-trigger" id="vx-faq-b4" aria-expanded="false" aria-controls="vx-faq-p4">
+              <span>Which WCAG levels do you support?</span>
+              <span class="vx-faq-icon" aria-hidden="true"></span>
+            </button>
+            <div class="vx-faq-panel" id="vx-faq-p4" role="region" aria-labelledby="vx-faq-b4" aria-hidden="true">
+              <p>The contrast checker reports ratios against WCAG 2.1 AA (4.5:1 for normal text) and AAA (7:1) thresholds so you can choose the standard your product targets.</p>
+            </div>
+          </div>
+          <div class="vx-faq-item vx-glass anim-stagger anim-fadein">
+            <button type="button" class="vx-faq-trigger" id="vx-faq-b5" aria-expanded="false" aria-controls="vx-faq-p5">
+              <span>Is the Photoshop plugin free?</span>
+              <span class="vx-faq-icon" aria-hidden="true"></span>
+            </button>
+            <div class="vx-faq-panel" id="vx-faq-p5" role="region" aria-labelledby="vx-faq-b5" aria-hidden="true">
+              <p>Yes — the VisionX Photoshop plugin is completely free to download and use in any project, commercial or personal.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 8 — FOOTER CTA -->
+    <section class="vx-footer-cta anim-fadeup" aria-labelledby="vx-footer-cta-title">
+      <div class="vx-container vx-footer-cta-inner">
+        <h2 id="vx-footer-cta-title" class="vx-footer-cta-title">Start designing for everyone.</h2>
+        <p class="vx-footer-cta-sub">Free. No signup. Works in your browser and in Photoshop.</p>
+        <div class="vx-footer-cta-btns">
+          <a class="vx-btn vx-btn-primary" href="tool.html">Open Web Tool →</a>
+          <a class="vx-btn vx-btn-secondary" href="plugin.html">Get Photoshop Plugin →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="vx-footer">
+    <div class="vx-container vx-footer-inner">
+      <p class="vx-footer-copy">© 2026 VisionX by ATA IT Solutions. All rights reserved.</p>
+      <ul class="vx-footer-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="tool.html">Web Tool</a></li>
+        <li><a href="bg-remover.html">BG Remover</a></li>
+        <li><a href="plugin.html">Plugin</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="colorEngine.js"></script>
+  <script src="main.js"></script>
+  <script src="site-nav.js"></script>
+</body>
+</html>

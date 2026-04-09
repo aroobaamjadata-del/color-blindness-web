@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" data-visionx-about="true">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About | VisionX</title>
+  <meta name="description" content="Meet Raheej Nadeem — Founder and Creative Director of VisionX, building inclusive accessibility tools for color-blind users.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="vx-body">
+  <!--
+    Founder photo setup:
+    1) Place your founder image at: assets/images/founder.jpg
+    2) Recommended ratio: 4:5 portrait (minimum 1200x1500)
+    3) If the image is missing, the built-in placeholder card is shown automatically.
+  -->
+
+  <header class="vx-nav-wrap">
+    <div class="vx-nav-row vx-reveal">
+      <a class="vx-logo" href="index.html">VisionX</a>
+      <button type="button" class="vx-nav-toggle" aria-controls="vxPrimaryNav" aria-expanded="false" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="vx-nav" id="vxPrimaryNav" aria-label="Primary">
+        <ul class="vx-nav-list">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html" aria-current="page">About</a></li>
+          <li><a href="tool.html">Web Tool</a></li>
+          <li><a href="bg-remover.html">BG Remover</a></li>
+          <li><a href="plugin.html">Plugin</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- SECTION 1 — HERO -->
+    <section class="vx-about-hero" aria-labelledby="vx-about-hero-title">
+      <div class="vx-about-orbs" aria-hidden="true">
+        <div class="vx-about-orb vx-about-orb--1"></div>
+        <div class="vx-about-orb vx-about-orb--2"></div>
+        <div class="vx-about-orb vx-about-orb--3"></div>
+      </div>
+      <div class="vx-container vx-about-hero-inner">
+        <p class="vx-about-pill vx-about-hero-badge">Founder &amp; Creative Director</p>
+        <h1 id="vx-about-hero-title" class="vx-about-hero-title vx-about-gradient vx-about-hero-headline">The Mind Behind VisionX.</h1>
+        <p class="vx-about-hero-sub vx-about-hero-subline">Designing accessible experiences for a more inclusive world.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 2 — FOUNDER PROFILE -->
+    <section class="vx-about-section" aria-labelledby="vx-about-founder-title">
+      <div class="vx-container vx-about-profile">
+        <article class="vx-about-photo-card vx-about-glass anim-scalein">
+          <div class="vx-about-photo-wrap">
+            <img
+              src="assets/images/founder.jpg"
+              alt="Raheej Nadeem — Founder & Creative Director of VisionX"
+              class="vx-about-photo"
+              onload="this.nextElementSibling.hidden=true"
+              onerror="this.hidden=true;this.nextElementSibling.hidden=false"
+            >
+            <div class="vx-about-photo-placeholder" aria-hidden="true">
+              <span>Founder Photo</span>
+            </div>
+          </div>
+          <div class="vx-about-photo-meta">
+            <h2 class="vx-about-founder-name">Raheej Nadeem</h2>
+            <p class="vx-about-founder-title">Founder &amp; Creative Director</p>
+            <p class="vx-about-chip">VisionX · ATA IT Solutions</p>
+            <p class="vx-about-location">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a9 9 0 0 0-9 9c0 6 9 11 9 11s9-5 9-11a9 9 0 0 0-9-9zm0 12a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"></path></svg>
+              Remote — Worldwide
+            </p>
+          </div>
+        </article>
+
+        <article class="vx-about-info">
+          <p class="vx-about-eyebrow anim-fadein">About the Founder</p>
+          <h2 id="vx-about-founder-title" class="vx-sr-only">Founder profile</h2>
+          <p class="vx-about-bio anim-fadeup">I am a passionate graphic designer with nearly four years of experience specializing in brand identity, textile design, and speculative design. I focus on creating visually impactful and inclusive designs that solve real-world problems.</p>
+
+          <div class="vx-about-block anim-fadeup">
+            <p class="vx-about-label vx-about-label--blue">The Origin Story</p>
+            <blockquote class="vx-about-quote vx-about-glass">I built VisionX to address the challenges faced by color-blind individuals in design and digital interfaces — aiming to make visual content more accessible and inclusive for everyone.</blockquote>
+          </div>
+
+          <div class="vx-about-block anim-fadeup">
+            <p class="vx-about-label vx-about-label--violet">Mission</p>
+            <p class="vx-about-mission vx-about-gradient">To create inclusive design solutions that make visual experiences accessible to everyone, regardless of visual limitations.</p>
+          </div>
+
+          <div class="vx-about-stats">
+            <div class="vx-about-stat-chip vx-about-glass anim-stagger anim-scalein">
+              <p class="vx-about-stat-num" data-about-count="4" data-about-suffix="+">0</p>
+              <p class="vx-about-stat-label">Years Experience</p>
+            </div>
+            <div class="vx-about-stat-chip vx-about-glass anim-stagger anim-scalein">
+              <p class="vx-about-stat-num" data-about-count="20" data-about-suffix="+">0</p>
+              <p class="vx-about-stat-label">Projects Completed</p>
+            </div>
+            <div class="vx-about-stat-chip vx-about-glass anim-stagger anim-scalein">
+              <p class="vx-about-stat-num" data-about-count="10" data-about-suffix="+">0</p>
+              <p class="vx-about-stat-label">Brand Identities</p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- SECTION 3 — SKILLS -->
+    <section class="vx-about-section vx-about-section--muted" aria-labelledby="vx-about-skills-title">
+      <div class="vx-container vx-about-center">
+        <p class="vx-about-eyebrow anim-fadein">Expertise</p>
+        <h2 id="vx-about-skills-title" class="vx-about-title anim-fadeup">Built on real craft.</h2>
+        <p class="vx-about-lead anim-fadeup">Every tool and skill chosen with purpose.</p>
+
+        <div class="vx-about-skills" role="list" aria-label="Founder skill tags">
+          <div class="vx-about-skill-pill anim-stagger anim-fadeup" role="listitem"><span class="vx-about-skill-ico">◆</span><span>Brand Identity Design</span></div>
+          <div class="vx-about-skill-pill anim-stagger anim-fadeup" role="listitem"><span class="vx-about-skill-ico vx-about-skill-ico--box">Ps</span><span>Adobe Photoshop</span></div>
+          <div class="vx-about-skill-pill anim-stagger anim-fadeup" role="listitem"><span class="vx-about-skill-ico vx-about-skill-ico--box">Ai</span><span>Adobe Illustrator</span></div>
+          <div class="vx-about-skill-pill anim-stagger anim-fadeup" role="listitem"><span class="vx-about-skill-ico">▦</span><span>UI/UX Design</span></div>
+          <div class="vx-about-skill-pill anim-stagger anim-fadeup" role="listitem"><span class="vx-about-skill-ico">◉</span><span>Accessibility Design</span></div>
+          <div class="vx-about-skill-pill anim-stagger anim-fadeup" role="listitem"><span class="vx-about-skill-ico">💡</span><span>Creative Problem Solving</span></div>
+        </div>
+
+        <p class="vx-about-note anim-fadein">Combining graphic design with technology to build a more accessible web.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 4 — COMPANY -->
+    <section class="vx-about-section" aria-labelledby="vx-about-company-title">
+      <div class="vx-container vx-about-company">
+        <article class="vx-about-company-copy">
+          <p class="vx-about-eyebrow anim-fadein">The Company</p>
+          <h2 id="vx-about-company-title" class="vx-about-title anim-fadeup">VisionX</h2>
+          <p class="vx-about-chip vx-about-chip--inline anim-fadeup">Founded 2026</p>
+          <p class="vx-about-body anim-fadeup">VisionX is a design-focused company dedicated to building accessibility-driven solutions, especially for color-blind users. It combines graphic design and technology to improve usability and visual clarity in digital products.</p>
+          <div class="vx-about-cta-row anim-fadeup">
+            <a href="/tool" class="vx-btn vx-btn-primary">Try the Web Tool →</a>
+            <a href="/plugin" class="vx-btn vx-btn-secondary">Download PS Plugin →</a>
+          </div>
+        </article>
+
+        <aside class="vx-about-services vx-about-glass">
+          <p class="vx-about-label">Services</p>
+          <ul class="vx-about-services-list">
+            <li class="anim-stagger anim-fadein"><span class="vx-about-check">✓</span><span>Brand Identity Design</span></li>
+            <li class="anim-stagger anim-fadein"><span class="vx-about-check">✓</span><span>UI/UX Design</span></li>
+            <li class="anim-stagger anim-fadein"><span class="vx-about-check">✓</span><span>Color Accessibility Consulting</span></li>
+            <li class="anim-stagger anim-fadein"><span class="vx-about-check">✓</span><span>Adobe Plugin Development</span></li>
+            <li class="anim-stagger anim-fadein"><span class="vx-about-check">✓</span><span>Visual Design Systems</span></li>
+            <li class="anim-stagger anim-fadein"><span class="vx-about-check">✓</span><span>Textile &amp; Pattern Design</span></li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <!-- SECTION 5 — MISSION -->
+    <section class="vx-about-mission-band anim-scalein" aria-labelledby="vx-about-mission-title">
+      <div class="vx-container vx-about-mission-inner">
+        <p class="vx-about-mission-mark" aria-hidden="true">“</p>
+        <h2 id="vx-about-mission-title" class="vx-about-mission-quote">To create inclusive design solutions that make visual experiences accessible to everyone, regardless of visual limitations.</h2>
+        <p class="vx-about-mission-byline">— Raheej Nadeem, Founder of VisionX</p>
+        <p class="vx-about-mission-meta">ATA IT Solutions · Est. 2026</p>
+      </div>
+    </section>
+
+    <!-- SECTION 6 — CONTACT CTA -->
+    <section class="vx-about-section">
+      <div class="vx-container">
+        <div class="vx-about-contact vx-about-glass anim-fadeup">
+          <p class="vx-about-eyebrow">Work with Raheej</p>
+          <h2 class="vx-about-title">Have a project in mind?</h2>
+          <p class="vx-about-body">Whether it's accessibility consulting, brand identity, or plugin development — let's build something meaningful.</p>
+          <div class="vx-about-cta-row">
+            <a href="/contact" class="vx-btn vx-btn-primary">Get in Touch →</a>
+            <a href="/tool" class="vx-btn vx-btn-secondary">Explore the Tool →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="vx-footer">
+    <div class="vx-container vx-footer-inner">
+      <p class="vx-footer-copy">© 2026 VisionX by ATA IT Solutions. All rights reserved.</p>
+      <ul class="vx-footer-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html" aria-current="page">About</a></li>
+        <li><a href="tool.html">Web Tool</a></li>
+        <li><a href="bg-remover.html">BG Remover</a></li>
+        <li><a href="plugin.html">Plugin</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="main.js"></script>
+  <script src="site-nav.js"></script>
+</body>
+</html>

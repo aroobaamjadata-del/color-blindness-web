@@ -5,6 +5,8 @@ import requests
 from io import BytesIO
 from pathlib import Path
 
+MAX_SIDE = 1280
+
 
 def load_image(source: str) -> Image.Image:
     if source.startswith(("http://", "https://")):
@@ -16,6 +18,18 @@ def load_image(source: str) -> Image.Image:
         raise FileNotFoundError(f"Not found: {img_path}")
     return Image.open(img_path)
 
+def downscale_for_inference(img: Image.Image, max_side: int = MAX_SIDE) -> Image.Image:
+    """Reduce peak RAM/CPU usage on small instances by limiting max image side."""
+    w, h = img.size
+    side = max(w, h)
+    if side <= max_side:
+        return img
+    scale = max_side / float(side)
+    nw = max(1, int(w * scale))
+    nh = max(1, int(h * scale))
+    # LANCZOS keeps quality while shrinking.
+    return img.resize((nw, nh), Image.Resampling.LANCZOS)
+
 
 def main():
     if len(sys.argv) != 3:
@@ -24,15 +38,13 @@ def main():
 
     input_path, output_path = sys.argv[1], sys.argv[2]
     img = load_image(input_path)
-    # Use a stronger general-use model and better mask post-processing for cleaner cutouts.
-    session = new_session("isnet-general-use")
+    # Free-tier profile: downscale + lighter model to avoid OOM on 512MB instances.
+    img = downscale_for_inference(img)
+    session = new_session("u2netp")
     no_bg = remove(
         img,
         session=session,
-        alpha_matting=True,
-        alpha_matting_foreground_threshold=230,
-        alpha_matting_background_threshold=20,
-        alpha_matting_erode_size=8,
+        alpha_matting=False,
         post_process_mask=True,
     )
 

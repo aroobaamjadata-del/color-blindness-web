@@ -12,7 +12,7 @@ const port = Number(process.env.PORT) || 3000;
 const dist = path.join(__dirname, "..", "dist");
 
 // BG Remover: VISIONX_BG_API overrides; otherwise Hugging Face Space (FastAPI /remove-bg).
-const DEFAULT_HF_BG_API = "https://arooba09-VisionX-bg-remover.hf.space";
+const DEFAULT_HF_BG_API = "https://arooba09-visionx-bg-remover.hf.space";
 app.get("/visionx-bg-api.js", (_req, res) => {
   res.type("application/javascript; charset=utf-8");
   const base = (process.env.VISIONX_BG_API || DEFAULT_HF_BG_API).trim().replace(/\/$/, "");

@@ -159,7 +159,7 @@
       } catch (_q) {}
 
       /** Default Hugging Face Space (FastAPI /remove-bg) when no ?api= or injected VISIONX_BG_API. */
-      var DEFAULT_HF_BG_API = "https://arooba09-VisionX-bg-remover.hf.space";
+      var DEFAULT_HF_BG_API = "https://arooba09-visionx-bg-remover.hf.space";
 
       var fileInput = document.getElementById("bgFileInput");
       var browseBtn = document.getElementById("bgBrowseBtn");
@@ -214,6 +214,73 @@
         if (retryBtn) retryBtn.disabled = isProcessing || !currentFile;
         if (downloadBtn) downloadBtn.disabled = isProcessing || !outCanvas.width;
         if (copyBtn) copyBtn.disabled = isProcessing || !outCanvas.width;
+        if (fileInput) fileInput.disabled = isProcessing;
+        if (dropZone) {
+          dropZone.style.pointerEvents = isProcessing ? "none" : "";
+          dropZone.setAttribute("aria-busy", isProcessing ? "true" : "false");
+        }
+      }
+
+      /** Max longest side (px) sent to HF/rembg — keeps backend under memory contract. */
+      var UPLOAD_MAX_DIMENSION = 256;
+      var MEMORY_PRESSURE_RETRY_MS = 4000;
+      var MEMORY_PRESSURE_MAX_RETRIES = 2;
+
+      function sleep(ms) {
+        return new Promise(function (resolve) {
+          setTimeout(resolve, ms);
+        });
+      }
+
+      /**
+       * Resize image in-browser: max dimension UPLOAD_MAX_DIMENSION, aspect preserved, PNG blob.
+       */
+      function resizeImageToPngBlob(file, maxDim) {
+        return new Promise(function (resolve, reject) {
+          var url = URL.createObjectURL(file);
+          var img = new Image();
+          img.onload = function () {
+            try {
+              var w = img.naturalWidth || img.width;
+              var h = img.naturalHeight || img.height;
+              if (!w || !h) {
+                URL.revokeObjectURL(url);
+                reject(new Error("Invalid image dimensions"));
+                return;
+              }
+              var scale = Math.min(maxDim / w, maxDim / h, 1);
+              var tw = Math.max(1, Math.round(w * scale));
+              var th = Math.max(1, Math.round(h * scale));
+              var c = document.createElement("canvas");
+              c.width = tw;
+              c.height = th;
+              var ctx = c.getContext("2d", { willReadFrequently: true });
+              ctx.drawImage(img, 0, 0, tw, th);
+              URL.revokeObjectURL(url);
+              c.toBlob(function (blob) {
+                if (!blob) reject(new Error("PNG encode failed"));
+                else resolve(blob);
+              }, "image/png");
+            } catch (err) {
+              URL.revokeObjectURL(url);
+              reject(err);
+            }
+          };
+          img.onerror = function () {
+            URL.revokeObjectURL(url);
+            reject(new Error("Could not read image"));
+          };
+          img.src = url;
+        });
+      }
+
+      function isMemoryPressureResponse(status, bodyText) {
+        if (status !== 503) return false;
+        var t = (bodyText || "").toLowerCase();
+        return (
+          t.indexOf("memory pressure") !== -1 ||
+          t.indexOf("server busy") !== -1
+        );
       }
 
       function getApiBase() {
@@ -314,34 +381,59 @@
         }
         setBusy(true);
         clearError();
-        setBackendStatus(true, "Backend: processing image... first run can take 2-5 minutes");
-        var form = new FormData();
-        form.append("image", file);
+        var pngBlob;
         try {
-          var res = await fetch(getRemoveBgUrl(), {
-            method: "POST",
-            body: form
-          });
-          if (!res.ok) {
-            var errLine = "";
+          setBackendStatus(true, "Preparing image (resize to max " + UPLOAD_MAX_DIMENSION + "px)…");
+          pngBlob = await resizeImageToPngBlob(file, UPLOAD_MAX_DIMENSION);
+        } catch (_prep) {
+          setBackendStatus(false, "Could not prepare image");
+          showError("Could not prepare image for upload.");
+          setBusy(false);
+          return;
+        }
+
+        var url = getRemoveBgUrl();
+        var attempts = 0;
+        var maxTries = 1 + MEMORY_PRESSURE_MAX_RETRIES;
+
+        try {
+          while (attempts < maxTries) {
+            attempts++;
+            setBackendStatus(
+              true,
+              attempts > 1
+                ? "Server busy — retrying in a few seconds… (" + attempts + "/" + maxTries + ")"
+                : "Removing background… (first run on HF can take 1–2 min)"
+            );
+
+            var form = new FormData();
+            form.append("image", pngBlob, "upload.png");
+
+            var res = await fetch(url, { method: "POST", body: form });
+            var bodyText = "";
             try {
-              var json = await res.json();
-              if (json) {
-                var d = json.detail != null ? String(json.detail).trim() : "";
-                var m = json.message != null ? String(json.message).trim() : "";
-                if (d) errLine = d;
-                else if (m) errLine = m;
-              }
-            } catch (_parse) {}
-            if (!errLine) errLine = "Request failed (HTTP " + res.status + ").";
-            setBackendStatus(false, "Backend: reachable — removal failed (see below)");
-            showError(errLine);
+              bodyText = await res.clone().text();
+            } catch (_read) {}
+
+            if (res.ok) {
+              setBackendStatus(true, "Backend: connected");
+              var blob = await res.blob();
+              drawResultBlob(blob);
+              return;
+            }
+
+            var retryable =
+              isMemoryPressureResponse(res.status, bodyText) && attempts < maxTries;
+            if (retryable) {
+              await sleep(MEMORY_PRESSURE_RETRY_MS);
+              continue;
+            }
+
+            setBackendStatus(false, "Backend: request failed");
+            showError("Server is busy, please try again.");
             setBusy(false);
             return;
           }
-          setBackendStatus(true, "Backend: connected");
-          var blob = await res.blob();
-          drawResultBlob(blob);
         } catch (err) {
           setBackendStatus(false, "Backend: not reachable");
           showError(err.message || "Background removal failed.");

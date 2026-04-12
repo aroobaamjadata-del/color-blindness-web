@@ -177,6 +177,10 @@
       var currentFile = null;
       var isProcessing = false;
 
+      /** Serial BG-removal queue: one POST at a time, 5s gap between jobs. */
+      var requestQueue = [];
+      var isQueueProcessorRunning = false;
+
       var ALLOWED = { "image/png": true, "image/jpeg": true, "image/webp": true };
 
       function showError(msg) {
@@ -223,13 +227,32 @@
 
       /** Max longest side (px) sent to HF/rembg — keeps backend under memory contract. */
       var UPLOAD_MAX_DIMENSION = 256;
-      var MEMORY_PRESSURE_RETRY_MS = 4000;
+      var MEMORY_PRESSURE_RETRY_MS = 6000;
       var MEMORY_PRESSURE_MAX_RETRIES = 2;
+      var QUEUE_GAP_MS = 5000;
 
       function sleep(ms) {
         return new Promise(function (resolve) {
           setTimeout(resolve, ms);
         });
+      }
+
+      function updateQueueStatusMessage(phase, waitingBehind) {
+        if (!backendStatusEl) return;
+        var w = waitingBehind || 0;
+        if (phase === "working") {
+          backendStatusEl.textContent =
+            w > 0 ? "Processing... (" + w + " waiting in queue)" : "Processing...";
+          backendStatusEl.style.color = "#30D158";
+        } else if (phase === "cooling") {
+          backendStatusEl.textContent =
+            "Waiting in queue... (" +
+            w +
+            " — next job starts in " +
+            Math.round(QUEUE_GAP_MS / 1000) +
+            "s)";
+          backendStatusEl.style.color = "#FF9F0A";
+        }
       }
 
       /**
@@ -275,12 +298,52 @@
       }
 
       function isMemoryPressureResponse(status, bodyText) {
-        if (status !== 503) return false;
-        var t = (bodyText || "").toLowerCase();
-        return (
-          t.indexOf("memory pressure") !== -1 ||
-          t.indexOf("server busy") !== -1
-        );
+        var raw = bodyText || "";
+        var t = raw.toLowerCase();
+        if (raw.indexOf("Server busy due to memory pressure") !== -1) return true;
+        if (status === 503 && (t.indexOf("memory pressure") !== -1 || t.indexOf("server busy") !== -1)) {
+          return true;
+        }
+        return false;
+      }
+
+      /** Mandatory: max 256px longest side → PNG blob (API field `image`). */
+      function resizeImage(file) {
+        return resizeImageToPngBlob(file, UPLOAD_MAX_DIMENSION);
+      }
+
+      function previewOriginalFromFile(file) {
+        return new Promise(function (resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function () {
+            var img = new Image();
+            img.onload = function () {
+              try {
+                var fitted = fitSize(img.naturalWidth, img.naturalHeight, 920, 520);
+                origCanvas.width = fitted.w;
+                origCanvas.height = fitted.h;
+                outCanvas.width = fitted.w;
+                outCanvas.height = fitted.h;
+                octx = origCanvas.getContext("2d", { willReadFrequently: true });
+                xctx = outCanvas.getContext("2d", { willReadFrequently: true });
+                octx.clearRect(0, 0, fitted.w, fitted.h);
+                xctx.clearRect(0, 0, fitted.w, fitted.h);
+                octx.drawImage(img, 0, 0, fitted.w, fitted.h);
+                resolve();
+              } catch (err) {
+                reject(err);
+              }
+            };
+            img.onerror = function () {
+              reject(new Error("Could not load this image."));
+            };
+            img.src = reader.result;
+          };
+          reader.onerror = function () {
+            reject(new Error("Could not read file."));
+          };
+          reader.readAsDataURL(file);
+        });
       }
 
       function getApiBase() {
@@ -323,122 +386,165 @@
         return base + node;
       }
 
-      function drawResultBlob(blob) {
-        var url = URL.createObjectURL(blob);
-        var img = new Image();
-        img.onload = function () {
-          xctx.clearRect(0, 0, outCanvas.width, outCanvas.height);
-          var t = document.createElement("canvas");
-          t.width = img.naturalWidth || img.width;
-          t.height = img.naturalHeight || img.height;
-          var tctx = t.getContext("2d", { willReadFrequently: true });
-          tctx.drawImage(img, 0, 0);
+      function drawResultBlobAsync(blob) {
+        return new Promise(function (resolve, reject) {
+          var url = URL.createObjectURL(blob);
+          var img = new Image();
+          img.onload = function () {
+            try {
+              xctx.clearRect(0, 0, outCanvas.width, outCanvas.height);
+              var t = document.createElement("canvas");
+              t.width = img.naturalWidth || img.width;
+              t.height = img.naturalHeight || img.height;
+              var tctx = t.getContext("2d", { willReadFrequently: true });
+              tctx.drawImage(img, 0, 0);
 
-          // Trim transparent margins so subject fills the output card more naturally.
-          var id = tctx.getImageData(0, 0, t.width, t.height).data;
-          var minX = t.width, minY = t.height, maxX = -1, maxY = -1;
-          for (var y = 0; y < t.height; y++) {
-            var row = y * t.width * 4;
-            for (var x = 0; x < t.width; x++) {
-              var a = id[row + x * 4 + 3];
-              if (a > 8) {
-                if (x < minX) minX = x;
-                if (y < minY) minY = y;
-                if (x > maxX) maxX = x;
-                if (y > maxY) maxY = y;
+              // Trim transparent margins so subject fills the output card more naturally.
+              var id = tctx.getImageData(0, 0, t.width, t.height).data;
+              var minX = t.width, minY = t.height, maxX = -1, maxY = -1;
+              for (var y = 0; y < t.height; y++) {
+                var row = y * t.width * 4;
+                for (var x = 0; x < t.width; x++) {
+                  var a = id[row + x * 4 + 3];
+                  if (a > 8) {
+                    if (x < minX) minX = x;
+                    if (y < minY) minY = y;
+                    if (x > maxX) maxX = x;
+                    if (y > maxY) maxY = y;
+                  }
+                }
               }
+
+              if (maxX >= minX && maxY >= minY) {
+                var sw = maxX - minX + 1;
+                var sh = maxY - minY + 1;
+                var scale = Math.min(outCanvas.width / sw, outCanvas.height / sh);
+                var dw = Math.max(1, Math.round(sw * scale));
+                var dh = Math.max(1, Math.round(sh * scale));
+                var dx = Math.round((outCanvas.width - dw) / 2);
+                var dy = Math.round((outCanvas.height - dh) / 2);
+                xctx.drawImage(t, minX, minY, sw, sh, dx, dy, dw, dh);
+              } else {
+                xctx.drawImage(img, 0, 0, outCanvas.width, outCanvas.height);
+              }
+
+              URL.revokeObjectURL(url);
+              resolve();
+            } catch (err) {
+              URL.revokeObjectURL(url);
+              reject(err);
             }
-          }
-
-          if (maxX >= minX && maxY >= minY) {
-            var sw = maxX - minX + 1;
-            var sh = maxY - minY + 1;
-            var scale = Math.min(outCanvas.width / sw, outCanvas.height / sh);
-            var dw = Math.max(1, Math.round(sw * scale));
-            var dh = Math.max(1, Math.round(sh * scale));
-            var dx = Math.round((outCanvas.width - dw) / 2);
-            var dy = Math.round((outCanvas.height - dh) / 2);
-            xctx.drawImage(t, minX, minY, sw, sh, dx, dy, dw, dh);
-          } else {
-            xctx.drawImage(img, 0, 0, outCanvas.width, outCanvas.height);
-          }
-
-          URL.revokeObjectURL(url);
-          setBusy(false);
-        };
-        img.onerror = function () {
-          URL.revokeObjectURL(url);
-          showError("Could not render processed output.");
-          setBusy(false);
-        };
-        img.src = url;
+          };
+          img.onerror = function () {
+            URL.revokeObjectURL(url);
+            reject(new Error("Could not render processed output."));
+          };
+          img.src = url;
+        });
       }
 
-      async function requestBackgroundRemoval(file) {
-        if (!file) {
-          showError("Upload an image first.");
-          return;
-        }
-        setBusy(true);
-        clearError();
+      /**
+       * POST `${API_BASE}/remove-bg` (via getRemoveBgUrl), FormData key `image`, returns PNG (or other) blob.
+       * Retries up to 2 times with 6s delay when body indicates memory pressure.
+       */
+      async function removeBackground(file) {
+        if (!file) throw new Error("No file.");
         var pngBlob;
         try {
-          setBackendStatus(true, "Preparing image (resize to max " + UPLOAD_MAX_DIMENSION + "px)…");
-          pngBlob = await resizeImageToPngBlob(file, UPLOAD_MAX_DIMENSION);
+          pngBlob = await resizeImage(file);
         } catch (_prep) {
-          setBackendStatus(false, "Could not prepare image");
-          showError("Could not prepare image for upload.");
-          setBusy(false);
-          return;
+          throw new Error("Could not prepare image for upload.");
         }
 
         var url = getRemoveBgUrl();
         var attempts = 0;
         var maxTries = 1 + MEMORY_PRESSURE_MAX_RETRIES;
 
-        try {
-          while (attempts < maxTries) {
-            attempts++;
-            setBackendStatus(
-              true,
-              attempts > 1
-                ? "Server busy — retrying in a few seconds… (" + attempts + "/" + maxTries + ")"
-                : "Removing background… (first run on HF can take 1–2 min)"
-            );
+        while (attempts < maxTries) {
+          attempts++;
+          var form = new FormData();
+          form.append("image", pngBlob, "upload.png");
 
-            var form = new FormData();
-            form.append("image", pngBlob, "upload.png");
+          var res = await fetch(url, { method: "POST", body: form });
+          var bodyText = "";
+          try {
+            bodyText = await res.clone().text();
+          } catch (_read) {}
 
-            var res = await fetch(url, { method: "POST", body: form });
-            var bodyText = "";
-            try {
-              bodyText = await res.clone().text();
-            } catch (_read) {}
-
-            if (res.ok) {
-              setBackendStatus(true, "Backend: connected");
-              var blob = await res.blob();
-              drawResultBlob(blob);
-              return;
-            }
-
-            var retryable =
-              isMemoryPressureResponse(res.status, bodyText) && attempts < maxTries;
-            if (retryable) {
-              await sleep(MEMORY_PRESSURE_RETRY_MS);
-              continue;
-            }
-
-            setBackendStatus(false, "Backend: request failed");
-            showError("Server is busy, please try again.");
-            setBusy(false);
-            return;
+          if (res.ok) {
+            return await res.blob();
           }
-        } catch (err) {
-          setBackendStatus(false, "Backend: not reachable");
-          showError(err.message || "Background removal failed.");
-          setBusy(false);
+
+          var retryable =
+            isMemoryPressureResponse(res.status, bodyText) && attempts < maxTries;
+          if (retryable) {
+            updateQueueStatusMessage("working", requestQueue.length);
+            if (backendStatusEl) {
+              backendStatusEl.textContent =
+                "Server busy due to memory pressure — retry " +
+                attempts +
+                "/" +
+                maxTries +
+                " (waiting " +
+                Math.round(MEMORY_PRESSURE_RETRY_MS / 1000) +
+                "s)";
+              backendStatusEl.style.color = "#FF9F0A";
+            }
+            await sleep(MEMORY_PRESSURE_RETRY_MS);
+            continue;
+          }
+
+          var msg = (bodyText || "").trim();
+          if (msg.length > 120) msg = msg.slice(0, 117) + "...";
+          throw new Error(msg || "Background removal failed (" + res.status + ").");
         }
+      }
+
+      async function processQueue() {
+        if (isQueueProcessorRunning) return;
+        isQueueProcessorRunning = true;
+        try {
+          while (requestQueue.length > 0) {
+            var file = requestQueue.shift();
+            var waitingBehind = requestQueue.length;
+            updateQueueStatusMessage("working", waitingBehind);
+            setBusy(true);
+            clearError();
+            try {
+              await previewOriginalFromFile(file);
+              currentFile = file;
+              loadedName = (file.name || "bg-removed").replace(/\.[^.]+$/, "") + "-bg-removed.png";
+              var outBlob = await removeBackground(file);
+              await drawResultBlobAsync(outBlob);
+              setBackendStatus(true, "Backend: connected");
+            } catch (err) {
+              setBackendStatus(false, "Backend: request failed");
+              showError(err.message || "Background removal failed.");
+            } finally {
+              setBusy(false);
+            }
+            if (requestQueue.length > 0) {
+              updateQueueStatusMessage("cooling", requestQueue.length);
+              await sleep(QUEUE_GAP_MS);
+            }
+          }
+        } finally {
+          isQueueProcessorRunning = false;
+          if (requestQueue.length === 0) {
+            setBackendStatus(true, "Backend: connected");
+          }
+        }
+      }
+
+      function addToQueue(file) {
+        if (!file) return;
+        requestQueue.push(file);
+        if (isQueueProcessorRunning && requestQueue.length > 0 && backendStatusEl) {
+          backendStatusEl.textContent =
+            "Waiting in queue... (" + requestQueue.length + " job(s) ahead)";
+          backendStatusEl.style.color = "#FF9F0A";
+        }
+        processQueue();
       }
 
       async function pingBackend() {
@@ -481,29 +587,15 @@
           return;
         }
         clearError();
-        currentFile = file;
         loadedName = (file.name || "bg-removed").replace(/\.[^.]+$/, "") + "-bg-removed.png";
-        var reader = new FileReader();
-        reader.onload = function () {
-          var img = new Image();
-          img.onload = function () {
-            var fitted = fitSize(img.naturalWidth, img.naturalHeight, 920, 520);
-            origCanvas.width = fitted.w;
-            origCanvas.height = fitted.h;
-            outCanvas.width = fitted.w;
-            outCanvas.height = fitted.h;
-            octx = origCanvas.getContext("2d", { willReadFrequently: true });
-            xctx = outCanvas.getContext("2d", { willReadFrequently: true });
-            octx.clearRect(0, 0, fitted.w, fitted.h);
-            xctx.clearRect(0, 0, fitted.w, fitted.h);
-            octx.drawImage(img, 0, 0, fitted.w, fitted.h);
-            requestBackgroundRemoval(file);
-          };
-          img.onerror = function () { showError("Could not load this image."); };
-          img.src = reader.result;
-        };
-        reader.onerror = function () { showError("Could not read file."); };
-        reader.readAsDataURL(file);
+        previewOriginalFromFile(file)
+          .then(function () {
+            currentFile = file;
+            addToQueue(file);
+          })
+          .catch(function (err) {
+            showError(err.message || "Could not load this image.");
+          });
       }
 
       function retryProcessing() {
@@ -511,7 +603,8 @@
           showError("Upload an image first.");
           return;
         }
-        requestBackgroundRemoval(currentFile);
+        clearError();
+        addToQueue(currentFile);
       }
 
       function downloadOutput() {

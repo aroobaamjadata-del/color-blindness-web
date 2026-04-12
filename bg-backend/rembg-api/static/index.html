@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Remove BG — API test</title>
+    <style>
+      :root {
+        color-scheme: dark light;
+        font-family: system-ui, sans-serif;
+        line-height: 1.5;
+      }
+      body {
+        max-width: 720px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      button {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+      }
+      #preview {
+        margin-top: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      #preview img {
+        max-width: 100%;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        background: repeating-conic-gradient(#ddd 0% 25%, #fff 0% 50%) 50% /
+          20px 20px;
+      }
+      .err {
+        color: #b00020;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Background removal test</h1>
+    <p>
+      Posts to <code>/remove-bg</code> on this origin. Max
+      <strong>2&nbsp;MB</strong> per file.
+    </p>
+    <input id="file" type="file" accept="image/*" />
+    <button id="go" type="button">Remove background</button>
+    <p id="status"></p>
+    <p id="error" class="err" hidden></p>
+    <div id="preview"></div>
+    <script>
+      const fileInput = document.getElementById("file");
+      const go = document.getElementById("go");
+      const statusEl = document.getElementById("status");
+      const errEl = document.getElementById("error");
+      const preview = document.getElementById("preview");
+
+      go.addEventListener("click", async () => {
+        errEl.hidden = true;
+        errEl.textContent = "";
+        preview.innerHTML = "";
+        const f = fileInput.files[0];
+        if (!f) {
+          errEl.textContent = "Choose an image first.";
+          errEl.hidden = false;
+          return;
+        }
+        if (f.size > 2 * 1024 * 1024) {
+          errEl.textContent = "File is larger than 2 MB.";
+          errEl.hidden = false;
+          return;
+        }
+        statusEl.textContent = "Processing…";
+        go.disabled = true;
+        const fd = new FormData();
+        fd.append("image", f, f.name);
+        try {
+          const res = await fetch("/remove-bg", { method: "POST", body: fd });
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || res.statusText);
+          }
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          const img = document.createElement("img");
+          img.src = url;
+          img.alt = "Result";
+          preview.appendChild(img);
+          statusEl.textContent = "Done.";
+        } catch (e) {
+          statusEl.textContent = "";
+          errEl.textContent = String(e.message || e);
+          errEl.hidden = false;
+        } finally {
+          go.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

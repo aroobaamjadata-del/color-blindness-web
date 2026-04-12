@@ -2,10 +2,20 @@
 # Optional: connect this repo in Render → New → Blueprint to provision both services.
 # If you already have manual services, instead set VISIONX_BG_API on the frontend to your API URL.
 #
-# The API uses remove_bg.py (Python + rembg). Native Node on Render may lack those; if /image/remove
-# fails in logs, add a Dockerfile under bg-backend or a build step that installs Python + rembg.
+# Prefer `visionx-rembg-api` (bg-backend/rembg-api) for low RAM: FastAPI + u2netp + 512px cap.
+# The Node `visionx-bg-api` still exposes /image/remove via remove_bg.py if you keep that service.
 
 services:
+  # Lightweight Python rembg API (u2netp, 512px cap). Prefer this for low-RAM hosts.
+  - type: web
+    name: visionx-rembg-api
+    runtime: python
+    rootDir: bg-backend/rembg-api
+    plan: free
+    buildCommand: pip install --no-cache-dir -r requirements.txt
+    startCommand: gunicorn app:app --workers=1 --threads=2 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout=120 --graceful-timeout=30
+    healthCheckPath: /health
+
   - type: web
     name: visionx-bg-api
     runtime: node

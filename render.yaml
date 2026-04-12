@@ -2,11 +2,11 @@
 # Optional: connect this repo in Render → New → Blueprint to provision both services.
 # If you already have manual services, instead set VISIONX_BG_API on the frontend to your API URL.
 #
-# Prefer `visionx-rembg-api` (bg-backend/rembg-api) for low RAM: FastAPI + u2netp + 512px cap.
+# Prefer `visionx-rembg-api` (bg-backend/rembg-api) for low RAM: FastAPI + isnet-general-use + 384px cap.
 # The Node `visionx-bg-api` still exposes /image/remove via remove_bg.py if you keep that service.
 
 services:
-  # Lightweight Python rembg API (u2netp, 512px cap). Prefer this for low-RAM hosts.
+  # Lightweight Python rembg API (isnet-general-use, 384px cap). Prefer this for low-RAM hosts.
   - type: web
     name: visionx-rembg-api
     runtime: python

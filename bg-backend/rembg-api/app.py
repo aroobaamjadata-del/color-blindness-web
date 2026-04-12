@@ -1,16 +1,67 @@
 """
-Memory-conscious FastAPI service: u2netp rembg session, 512px cap, single-flight inference.
+FastAPI + rembg — Hugging Face Spaces CPU, **production memory contract** (documentation mirror of runtime).
 
-Deploy: Hugging Face Spaces / Docker (uvicorn 0.0.0.0:7860), or
-gunicorn app:app --workers=1 --threads=2 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
+---------------------------------------------------------------------------
+Thread containment (MUST precede any ML import in this module)
+---------------------------------------------------------------------------
+``OMP_NUM_THREADS``, ``MKL_NUM_THREADS``, and ``OPENBLAS_NUM_THREADS`` are set to ``1``
+immediately after ``import os`` and **before** ``fastapi`` / ``rembg`` / ONNX load.
+Purpose: avoid BLAS libraries spawning hidden thread pools that duplicate scratch memory
+before the ONNX session initializes.
+
+---------------------------------------------------------------------------
+Model contract
+---------------------------------------------------------------------------
+Default ``REMBG_MODEL`` is ``isnet-general-use`` (CPU-oriented rembg preset), loaded once
+per process via ``new_session(REMBG_MODEL)`` and stored in ``_session`` — no per-request
+reload. Override with env ``REMBG_MODEL`` if required.
+
+---------------------------------------------------------------------------
+Memory scaling contract (single rule — no other input-size tiers)
+---------------------------------------------------------------------------
+``MEMORY_RSS_MAX_SIDE_256_MB = 400.0`` (MB RSS). When ``psutil`` reports process RSS:
+  * ``RSS > 400`` → longest side ``max_side = 256`` for preprocessing.
+  * else → ``max_side = 384`` (``DEFAULT_MAX_SIDE`` in ``utils.preprocess``).
+There are **no** additional fallback or degrade tiers tied to input geometry.
+``MEM_REJECT_MB`` (separate constant) may **503-reject** work when RSS exceeds a host
+hard cap; it does **not** add further ``max_side`` states.
+
+---------------------------------------------------------------------------
+PNG optimization contract
+---------------------------------------------------------------------------
+``png_optimize`` is ``True`` only when RSS is unknown (no psutil) **or** ``RSS <= 400`` MB.
+When RSS **exceeds** 400 MB, PNG zlib optimization is **disabled** to avoid extra working-set
+and CPU under pressure (same 400 MB boundary as ``max_side``).
+
+---------------------------------------------------------------------------
+Warmup contract (startup only)
+---------------------------------------------------------------------------
+One non-production path: 32×32 RGB, ``preprocess_for_inference(..., max_side=96)``,
+``png_optimize=False``, **exactly one** ``remove()`` — initializes the ONNX graph without
+paying a full 384px first request.
+
+---------------------------------------------------------------------------
+Memory lifecycle contract (inference worker ``_process_sync``)
+---------------------------------------------------------------------------
+After ``preprocess_for_inference``: raw upload ``bytes`` are deleted (``del raw``).
+The RGB ``PIL`` image is always closed in a ``finally`` block; ``gc.collect()`` runs after
+the inference path. Intermediate tensors are not retained beyond ``remove``/encode.
+
+---------------------------------------------------------------------------
+API (unchanged)
+---------------------------------------------------------------------------
+``POST /remove-bg`` (multipart field ``image``), ``GET /health``, ``GET /``.
+
+Deploy: Hugging Face Spaces / Docker (uvicorn ``0.0.0.0:7860``), or gunicorn + uvicorn worker.
 """
 
 from __future__ import annotations
 
 import os
 
-# Before numpy/onnx (pulled in by rembg): cap BLAS/OMP threads for stable RSS in Docker / HF Spaces.
+# Memory contract §1 — thread containment BEFORE FastAPI / rembg / ONNX imports.
 os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 import asyncio
@@ -30,11 +81,12 @@ from fastapi.staticfiles import StaticFiles
 from rembg import new_session
 
 from utils.bg_remove import remove_background_rgb
-from utils.preprocess import (
-    DEFAULT_MAX_SIDE,
-    DEGRADED_MAX_SIDE,
-    preprocess_for_inference,
-)
+from utils.preprocess import DEFAULT_MAX_SIDE, preprocess_for_inference
+
+# Memory contract §3 — sole RSS→geometry rule (MB). No other scaling tiers.
+MEMORY_RSS_MAX_SIDE_256_MB = 400.0
+# Memory contract §2 — default ``isnet-general-use``; one session per process (see lifespan).
+REMBG_MODEL = os.getenv("REMBG_MODEL", "isnet-general-use").strip() or "isnet-general-use"
 
 try:
     import psutil
@@ -55,12 +107,6 @@ DEBUG_MEMORY = DEBUG_MEMORY_FORCE or os.environ.get("REMBG_DEBUG_MEMORY", "").lo
 MAX_UPLOAD_BYTES = 2 * 1024 * 1024
 # Refuse new work before preprocess / upload buffer (~62 MB headroom on 512 MB hosts).
 MEM_REJECT_MB = float(os.environ.get("MEM_REJECT_MB", "450"))
-# Softer cap: smaller thumbnail only (post_process_mask stays off for HF/RAM stability).
-MEM_DEGRADE_MB = float(os.environ.get("MEM_DEGRADE_MB", "350"))
-# Survival: cap longest side at 256 when RSS is high but below reject (env-tunable).
-MEM_SURVIVAL_MB = float(os.environ.get("MEM_SURVIVAL_MB", "440"))
-# When RSS is below this, allow PNG zlib optimize=True; at/above → skip optimize (lower RAM).
-MEM_PNG_OPTIMIZE_MAX_RSS_MB = float(os.environ.get("MEM_PNG_OPTIMIZE_MAX_RSS_MB", "350"))
 # Hard cap on executor wall time (ONNX thread may still finish in background).
 INFERENCE_TIMEOUT_SEC = float(os.environ.get("INFERENCE_TIMEOUT_SEC", "20"))
 
@@ -100,12 +146,22 @@ def _log_rss(label: str) -> None:
 
 
 def _warmup_session_sync() -> None:
-    """One tiny forward pass so ONNX/rembg allocators settle before the first user request."""
+    """
+    Memory contract §6 — warmup (startup, non-production workload).
+
+    * Input: 32×32 RGB dummy image encoded to PNG bytes.
+    * ``preprocess_for_inference(..., max_side=96)`` — not the production 384 cap.
+    * ``png_optimize=False``.
+    * **Exactly one** ``remove()`` call to initialize the ONNX graph and avoid a cold
+      first-user allocation spike at full ``max_side``.
+
+    RGB ``PIL`` image is closed in ``finally``; ``gc.collect()`` runs after the path.
+    """
     if _session is None:
         return
     from PIL import Image
 
-    tiny = Image.new("RGB", (64, 64), (128, 128, 128))
+    tiny = Image.new("RGB", (32, 32), (128, 128, 128))
     buf = BytesIO()
     try:
         tiny.save(buf, format="PNG")
@@ -115,25 +171,32 @@ def _warmup_session_sync() -> None:
     tiny.close()
     del tiny
 
-    rgb = preprocess_for_inference(raw, max_side=DEFAULT_MAX_SIDE)
+    # Skip full 384 path during warmup — only allocator / graph init matters.
+    rgb = preprocess_for_inference(raw, max_side=96)
     try:
         del raw
         out = remove_background_rgb(
             rgb,
             _session,
             post_process_mask=False,
-            png_optimize=True,
+            png_optimize=False,
         )
         del out
     finally:
         rgb.close()
         del rgb
     gc.collect()
-    logger.info("Warmup inference complete (64x64).")
+    logger.info("Warmup inference complete (32x32, max_side=96).")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """
+    Load **one** rembg ONNX session (``new_session(REMBG_MODEL)``), run warmup, then serve.
+
+    Shutdown clears ``_session`` and stops the single-thread executor. This matches the
+    model contract: CPU-optimized backend, single session reused for the process lifetime.
+    """
     global _session, _model_ready, _executor
     loop = asyncio.get_running_loop()
     # Single worker thread: no hidden parallel inferences stacking model memory.
@@ -143,9 +206,9 @@ async def lifespan(app: FastAPI):
     )
     loop.set_default_executor(_executor)
 
-    logger.info("Loading rembg session (u2netp)…")
+    logger.info("Loading rembg session (%s)…", REMBG_MODEL)
     _log_rss("before model load")
-    _session = new_session("u2netp")
+    _session = new_session(REMBG_MODEL)
     _log_rss("after model load")
     try:
         _warmup_session_sync()
@@ -223,7 +286,17 @@ async def _read_limited_upload(upload: UploadFile) -> bytes:
 
 
 def _process_sync(raw: bytes) -> bytes:
-    """CPU-heavy path: runs in the single-thread default executor."""
+    """
+    Synchronous inference path (``run_in_executor`` worker) — encodes the memory contract.
+
+    **Scaling (§3):** compare ``rss_mb`` to ``MEMORY_RSS_MAX_SIDE_256_MB`` (400.0): if
+    ``rss_mb > 400`` then ``max_side=256``, else ``max_side=384``. No other tiers.
+
+    **PNG (§4):** ``png_optimize`` iff ``rss_mb is None`` or ``rss_mb <= 400``.
+
+    **Lifecycle (§7):** after ``preprocess_for_inference``, ``del raw`` drops upload bytes.
+    ``finally`` always ``rgb.close()`` and ``del rgb``; ``gc.collect()`` runs after inference.
+    """
     if _session is None:
         raise RuntimeError("Model session is not initialized.")
 
@@ -232,20 +305,20 @@ def _process_sync(raw: bytes) -> bytes:
     if rss0 is not None and rss0 >= MEM_REJECT_MB:
         raise MemGuardRejected()
 
-    max_side = DEFAULT_MAX_SIDE
-    if rss0 is not None and rss0 >= MEM_DEGRADE_MB:
-        max_side = DEGRADED_MAX_SIDE
+    rss_mb = rss0
+    if rss_mb is not None and rss_mb > MEMORY_RSS_MAX_SIDE_256_MB:
+        max_side = 256
         logger.info(
-            "Degraded inference path (RSS %.1f MB >= %.1f MB): max_side=%s",
-            rss0,
-            MEM_DEGRADE_MB,
+            "Input cap (RSS %.1f MB > %.0f MB): max_side=%s",
+            rss_mb,
+            MEMORY_RSS_MAX_SIDE_256_MB,
             max_side,
         )
-    if rss0 is not None and rss0 >= MEM_SURVIVAL_MB:
-        max_side = 256
-        logger.info("Survival mode (RSS %.1f MB >= %.1f MB): max_side=%s", rss0, MEM_SURVIVAL_MB, max_side)
+    else:
+        max_side = DEFAULT_MAX_SIDE
 
-    png_optimize = rss0 is None or rss0 < MEM_PNG_OPTIMIZE_MAX_RSS_MB
+    # Memory contract §4 — PNG optimize only at RSS ≤ 400 MB (or RSS unknown).
+    png_optimize = rss_mb is None or rss_mb <= MEMORY_RSS_MAX_SIDE_256_MB
 
     _log_rss("memory before preprocess")
     rgb = preprocess_for_inference(raw, max_side=max_side)
@@ -268,9 +341,12 @@ def _process_sync(raw: bytes) -> bytes:
 
 @app.get("/health")
 async def health():
-    """Minimal shape for orchestrators (e.g. Hugging Face health route)."""
+    """
+    Liveness: ``{"status","model","ready"}``. ``model`` echoes ``REMBG_MODEL`` when ready
+    (default ``isnet-general-use`` per model contract §2).
+    """
     if _model_ready:
-        return {"status": "ok", "model": "u2netp", "ready": True}
+        return {"status": "ok", "model": REMBG_MODEL, "ready": True}
     return {"status": "starting", "model": None, "ready": False}
 
 
@@ -296,6 +372,13 @@ def _stream_png_from_buffer(buffer: BytesIO, chunk_size: int = 32768):
 
 @app.post("/remove-bg")
 async def remove_bg(image: UploadFile = File(..., description="Image file (<= 2 MB)")):
+    """
+    ``POST /remove-bg`` — multipart field **image** (contract unchanged).
+
+    Inference obeys §3–§7 via ``_process_sync`` (single semaphore, executor timeout separate
+    from scaling tiers). Response streams PNG after dropping the in-memory ``bytes`` copy
+    used for encoding where possible.
+    """
     if not _model_ready or _session is None:
         raise HTTPException(status_code=503, detail="Model not ready. Retry shortly.")
 

@@ -12,14 +12,14 @@ if TYPE_CHECKING:
     from PIL import Image
 
 
-def image_to_png_bytes(img: Image.Image) -> bytes:
+def image_to_png_bytes(img: Image.Image, *, optimize: bool = True) -> bytes:
     """
-    Single BytesIO encode path: avoid optimize=True (extra pass / higher peak RSS).
-    compress_level 3 balances size vs encoder work for small web images.
+    Single BytesIO encode. ``optimize=False`` when RSS is high (caller-controlled)
+    to reduce encoder working set; ``compress_level`` stays low (1).
     """
     buf = BytesIO()
     try:
-        img.save(buf, format="PNG", optimize=False, compress_level=3)
+        img.save(buf, format="PNG", optimize=optimize, compress_level=1)
         out = buf.getvalue()
     finally:
         buf.close()
@@ -30,11 +30,12 @@ def remove_background_rgb(
     rgb_image: Image.Image,
     session,
     *,
-    post_process_mask: bool = True,
+    post_process_mask: bool = False,
+    png_optimize: bool = True,
 ) -> bytes:
     """
     Run rembg; drop the RGBA output as soon as bytes exist.
-    post_process_mask=False under memory pressure reduces CPU/RAM slightly.
+    post_process_mask=False keeps peak RAM lower (recommended for HF / small instances).
     """
     rgba = remove(
         rgb_image,
@@ -43,7 +44,7 @@ def remove_background_rgb(
         post_process_mask=post_process_mask,
     )
     try:
-        png_bytes = image_to_png_bytes(rgba)
+        png_bytes = image_to_png_bytes(rgba, optimize=png_optimize)
         return png_bytes
     finally:
         rgba.close()

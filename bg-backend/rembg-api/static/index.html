@@ -73,11 +73,24 @@
         }
         statusEl.textContent = "Processing…";
         go.disabled = true;
-        const fd = new FormData();
-        fd.append("image", f, f.name);
+        const maxAttempts = 3;
+        const retryDelayMs = 2500;
+        let res = null;
         try {
-          const res = await fetch("/remove-bg", { method: "POST", body: fd });
-          if (!res.ok) {
+          for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            const fd = new FormData();
+            fd.append("image", f, f.name);
+            res = await fetch("/remove-bg", { method: "POST", body: fd });
+            if (res.status === 503 && attempt < maxAttempts - 1) {
+              statusEl.textContent = "Server busy, retrying…";
+              await new Promise(function (r) {
+                setTimeout(r, retryDelayMs);
+              });
+              continue;
+            }
+            break;
+          }
+          if (!res || !res.ok) {
             const text = await res.text();
             throw new Error(text || res.statusText);
           }

@@ -1,15 +1,8 @@
-# Python 3.10+ recommended (matches rembg/onnx wheels). Render: see runtime.txt.
-#
-# FastAPI stack
+# Python 3.11 in Docker (see Dockerfile / runtime.txt). CPU-only stack for Hugging Face Spaces.
 fastapi>=0.100.0
-uvicorn[standard]>=0.22.0
-gunicorn>=21.2.0
+uvicorn>=0.22.0
 python-multipart>=0.0.6
-
-# Inference (u2netp only — keep onnxruntime lean; avoid GPU extras on free tier)
 rembg>=2.0.50
 onnxruntime>=1.17.0
 Pillow>=10.0.0
-
-# Optional: RSS logging in app.py
 psutil>=5.9.0

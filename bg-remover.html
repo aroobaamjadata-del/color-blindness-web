@@ -158,6 +158,9 @@
         if (aq) window.VISIONX_BG_API = String(aq).replace(/\/$/, "");
       } catch (_q) {}
 
+      /** Default Hugging Face Space (FastAPI /remove-bg) when no ?api= or injected VISIONX_BG_API. */
+      var DEFAULT_HF_BG_API = "https://arooba09-VisionX-bg-remover.hf.space";
+
       var fileInput = document.getElementById("bgFileInput");
       var browseBtn = document.getElementById("bgBrowseBtn");
       var dropZone = document.getElementById("bgDropZone");
@@ -221,7 +224,36 @@
         if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
           return "http://127.0.0.1:8000";
         }
-        return window.location.origin;
+        return DEFAULT_HF_BG_API;
+      }
+
+      /**
+       * Node (Express) uses POST /image/remove; Hugging Face / FastAPI uses POST /remove-bg (field: image).
+       * Cross-origin API base → treat as FastAPI; localhost → Node; same-origin non-HF → Node monolith.
+       */
+      function getRemoveBgUrl() {
+        var base = getApiBase();
+        var fast = "/remove-bg";
+        var node = "/image/remove";
+        try {
+          var u = new URL(base);
+          var host = u.hostname;
+          if (host.endsWith(".hf.space") || host.indexOf("hf.space") !== -1) {
+            return base + fast;
+          }
+          if (host === "localhost" || host === "127.0.0.1") {
+            return base + node;
+          }
+          if (u.origin !== window.location.origin) {
+            return base + fast;
+          }
+        } catch (_e) {
+          return base + fast;
+        }
+        if (base.indexOf("VisionX-bg-remover") !== -1 || base.indexOf("visionx-bg-remover") !== -1) {
+          return base + fast;
+        }
+        return base + node;
       }
 
       function drawResultBlob(blob) {
@@ -286,7 +318,7 @@
         var form = new FormData();
         form.append("image", file);
         try {
-          var res = await fetch(getApiBase() + "/image/remove", {
+          var res = await fetch(getRemoveBgUrl(), {
             method: "POST",
             body: form
           });
@@ -326,7 +358,9 @@
         var timeoutMs = isLocal ? 12000 : 120000;
         var sameOriginFallback = base === window.location.origin;
         var configHint = sameOriginFallback
-          ? " Set env VISIONX_BG_API on your Render frontend service to your API URL, or open this page with ?api=https://YOUR-API.onrender.com"
+          ? " Set env VISIONX_BG_API on your Render frontend service, or open this page with ?api=… (default is Hugging Face: " +
+            DEFAULT_HF_BG_API +
+            ")"
           : "";
 
         try {
